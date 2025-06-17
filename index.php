@@ -87,7 +87,7 @@ $result = mysqli_query($data, $sql);
 </head>
 <body>
 	<nav>
-		<label class="logo">Miles e-School Academy</label>
+		<label class="logo">LIMATA e LEANING SCHOOL</label>
 		<ul>
 			<li><a href="">Home</a></li>
 			<li><a href="">Admission</a></li>
@@ -102,13 +102,13 @@ $result = mysqli_query($data, $sql);
 	</div>
 
 	<div class="container my-4">
-		<div class="row">
+		<div class="limz">
 			<div class="col-md-4">
-				<img class="welcome_img" src="row.jpg" alt="Welcome">
+				<img class="welcome_img" src=".jpg" alt="Welcome">
 			</div>
 			<div class="col-md-8">
-				<h1>Welcome To Miles e-School Academy</h1>
-				<p>At Extra Miles Elementary, we believe that learning is a journey — and sometimes, it takes a few extra miles! Our students don’t just stop at the basics; they zoom past the ordinary with curiosity, creativity, and a healthy dose of laughter...</p>
+				<h1>Welcome To Limata1 e-School Academy</h1>
+				<p>At Extra Limata Elementary, we believe that learning is a journey — and sometimes, it takes a few extra miles! Our students don’t just stop at the basics; they zoom past the ordinary with curiosity, creativity, and a healthy dose of laughter...</p>
 			</div>
 		</div>
 	</div>
@@ -138,30 +138,50 @@ $result = mysqli_query($data, $sql);
 		</div>
 	</div>
 
-	<!-- Admission Form -->
-<div class="form_deg" style="display: flex; justify-content: center; align-items: center; height: 100vh;">
-    <div style="width: 100%; max-width: 400px; background-color: #f8f9fa; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
-        <div class="title_deg" style="text-align: center;">Admission Form</div>
-        <form class="login_form" action="data_check.php" method="POST">
-            <div class="admin_int">
-                <label class="label_text">Name</label>
-                <input class="input_deg" type="text" name="name">
+<!-- Admission Form -->
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white text-center">
+                    <h3>Admission Form</h3>
+               
+                    <form action="data_check.php" method="POST">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Name:</label>
+                            <input type="text" name="name" id="name" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email:</label>
+                            <input type="email" name="email" id="email" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="phone" class="form-label">Phone:</label>
+                            <input type="text" name="phone" id="phone" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="program" class="form-label">Select Program:</label>
+                            <select name="program" id="program" class="form-control" required>
+                                <option value="">-- Select Program --</option>
+                                <option value="Computer Science">Computer Science</option>
+                                <option value="Engineering">Engineering</option>
+                                <option value="Mathematics">Mathematics</option>
+                                <option value="Business Administration">Business Administration</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="message" class="form-label">Why Should We Accept You?</label>
+                            <textarea name="message" id="message" class="form-control" rows="4" required></textarea>
+                        </div>
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary">Apply</button>
+                        </div>
+                    </form>
+                </div>
             </div>
-            <div class="admin_int">
-                <label class="label_text">Email</label>
-                <input class="input_deg" type="text" name="email">
-            </div>
-            <div class="admin_int">
-                <label class="label_text">Phone</label>
-                <input class="input_deg" type="text" name="phone">
-            </div>
-            <div class="admin_int" style="text-align: center;">
-                <input class="submit-btn" type="submit" value="Apply" name="apply">
-            </div>
-        </form>
+        </div>
     </div>
 </div>
-
 <!-- Contact Us Section -->
 <div class="contact-us" style="background-color: #f8f9fa; padding: 40px 20px; text-align: center;">
     <h1 style="color: #007bff; margin-bottom: 30px;">Contact Us</h1>

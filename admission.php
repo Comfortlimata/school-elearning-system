@@ -1,121 +1,86 @@
-<?php
 
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+<?php
 
 session_start();
 
-if (!isset($_SESSION['username'])) {
-    header("location:login.php");
-    exit();
-} elseif ($_SESSION['usertype'] == 'student') {
-    header("location:login.php");
-    exit();
+if (!isset($_SESSION['username']))
+{
+header("location:login.php");
+exit();
+}
+elseif($_SESSION['usertype']=='student')
+{
+	header("location:login.php");
+	exit();
+	
 }
 
-$host = "localhost";
-$user = "root";
-$password = "";
-$db = "schoolproject";
+$host="localhost";
+$user="root"; 
+$password="";
+$db="schoolproject";
 
-$data = mysqli_connect($host, $user, $password, $db);
-
+$data=mysqli_connect($host, $user, $password, $db);
+ 
 $sql = "SELECT * FROM admission";
 
 $result = mysqli_query($data, $sql);
 ?>
 
+
 <!DOCTYPE html>
-<html lang="en">
-
+<html>
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Admission Section</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Admin Dashboard</title>
+   
+   <?php
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+include 'admin_css.php';
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f8f9fa;
-            margin: 0;
-            padding: 0;
-        }
 
-        .content {
-            padding: 40px 20px;
-            text-align: center;
-        }
+   ?>
 
-        h1 {
-            color: #007bff;
-            margin-bottom: 30px;
-        }
-
-        .table {
-            width: 80%;
-            margin: 0 auto;
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        th {
-            background-color: #007bff;
-            color: white;
-            font-size: 16px;
-            padding: 10px;
-        }
-
-        td {
-            padding: 8px;
-            font-size: 14px;
-        }
-
-        .back-btn {
-            margin-top: 20px;
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        .back-btn:hover {
-            background-color: #0056b3;
-        }
-    </style>
+	 
 </head>
-
 <body>
 
-    <div class="content">
-        <h1>Applied For Admission</h1>
+	<?php
 
-        <table class="table table-bordered">
+
+    include 'adminsidebar.php';
+
+	?> 
+	<center>
+
+<div class="content">
+    <h1 class="text-center mb-4">Applied For Admission</h1>
+
+    <div class="d-flex justify-content-center">
+        <table class="table table-bordered" style="width: 80%;">
             <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Phone</th>
+                <th style="padding: 10px; font-size: 10px;">Name</th>
+                <th style="padding: 10px; font-size: 10px;">Email</th>
+                <th style="padding: 10px; font-size: 10px;">Phone</th>
             </tr>
 
-            <?php
-            while ($info = $result->fetch_assoc()) {
-                echo "<tr>
-                        <td>{$info['name']}</td>
-                        <td>{$info['email']}</td>
-                        <td>{$info['phone']}</td>
-                      </tr>";
-            }
-            ?>
+            <?php while ($info = $result->fetch_assoc()) { ?>
+                <tr>
+                    <td style='padding: 8px;'><?php echo $info['name']; ?></td>
+                    <td style='padding: 8px;'><?php echo $info['email']; ?></td>
+                    <td style='padding: 8px;'><?php echo $info['phone']; ?></td>
+                </tr>
+            <?php } ?>
         </table>
-
-        <button class="back-btn" onclick="window.location.href='adminhome.php'">Back to Dashboard</button>
     </div>
+</div>
+
+</center>
+  
+  </div>
 
 </body>
 
 </html>
+

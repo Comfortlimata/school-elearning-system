@@ -1,20 +1,25 @@
 <?php
 session_start();
 
+// Database connection
+$conn = mysqli_connect("localhost", "root", "", "schoolproject");
+
+if (!$conn) {
+    die("Database connection failed: " . mysqli_connect_error());
+}
+
 // Only admins can add courses
 if (!isset($_SESSION['username']) || $_SESSION['usertype'] !== 'admin') {
+    echo "<script>alert('Access denied. Only admins can add courses.');</script>";
     header("Location: login.php");
     exit();
 }
-
-$conn = mysqli_connect("localhost", "root", "", "schoolproject");
-
-if (!$conn) die("Connection failed: " . mysqli_connect_error());
 
 if (isset($_POST['add_course'])) {
     $name = mysqli_real_escape_string($conn, $_POST['course_name']);
     $code = mysqli_real_escape_string($conn, $_POST['course_code']);
     $desc = mysqli_real_escape_string($conn, $_POST['course_description']);
+    $program = mysqli_real_escape_string($conn, $_POST['program']);
     
     // File Upload
     $filePath = '';
@@ -27,11 +32,10 @@ if (isset($_POST['add_course'])) {
         } else {
             $uploadDir = "uploads/";
             if (!file_exists($uploadDir)) mkdir($uploadDir, 0755, true);
-            
-            // Generate unique filename to avoid overwrite
+
             $fileName = time() . '_' . basename($_FILES["course_file"]["name"]);
             $filePath = $uploadDir . $fileName;
-            
+
             if (!move_uploaded_file($_FILES["course_file"]["tmp_name"], $filePath)) {
                 echo "<script>alert('Failed to upload file. Please try again.');</script>";
                 $filePath = '';
@@ -39,9 +43,9 @@ if (isset($_POST['add_course'])) {
         }
     }
 
-    $sql = "INSERT INTO courses (course_name, course_code, course_description, document_path)
-            VALUES ('$name', '$code', '$desc', '$filePath')";
-    
+    $sql = "INSERT INTO courses (course_name, course_code, course_description, document_path, program)
+            VALUES ('$name', '$code', '$desc', '$filePath', '$program')";
+
     if (mysqli_query($conn, $sql)) {
         echo "<script>alert('Course added successfully');</script>";
     } else {
@@ -89,7 +93,6 @@ if (isset($_POST['add_course'])) {
     </div>
 </nav>
 
-<!-- Main Form Card -->
 <div class="container">
     <div class="card">
         <div class="card-header bg-primary text-white text-center">
@@ -110,6 +113,15 @@ if (isset($_POST['add_course'])) {
                     <textarea class="form-control" name="course_description" id="course_description" rows="3" required></textarea>
                 </div>
                 <div class="mb-3">
+                    <label for="program" class="form-label">Program</label>
+                    <select class="form-control" name="program" id="program" required>
+                        <option value="Computer Science">Computer Science</option>
+                        <option value="Business Administration">Business Administration</option>
+                        <option value="Engineering">Engineering</option>
+                        <option value="Mathematics">Mathematics</option>
+                    </select>
+                </div>
+                <div class="mb-3">
                     <label for="course_file" class="form-label">Attach Document (PDF, DOC, DOCX)</label>
                     <input class="form-control" type="file" name="course_file" id="course_file" accept=".pdf,.doc,.docx">
                 </div>
@@ -118,7 +130,7 @@ if (isset($_POST['add_course'])) {
 
             <!-- Back button -->
             <div class="mt-3 text-center">
-                <a href="admission.php" class="btn btn-secondary">Back to Admission Page</a>
+                <a href="adminhome.php" class="btn btn-secondary">Back to Home</a>
             </div>
         </div>
     </div>
