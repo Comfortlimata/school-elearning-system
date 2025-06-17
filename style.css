@@ -1,0 +1,178 @@
+*
+{
+	padding: 0;
+	margin: 0;
+}
+
+nav
+{
+   position: fixed;
+   background-color: lightblue;
+   height: 70px;
+   width: 100%;
+   z-index: 1;
+}
+
+
+.logo
+{
+	font-size: 25px;
+	position: relative;
+	left: 5%;
+	color:white;
+	font-weight: bold;
+	line-height:70px ;
+}
+
+ul
+{
+	position: relative;
+	float: right;
+	margin-right: 20px;
+}
+
+ul li
+{
+	display: inline-block;
+	line-height: 70px;
+	margin: 0 5px;
+}
+
+ul li a
+{
+	text-decoration: none;
+	color: white;
+	font-size: 17px;
+}
+
+.main_img
+{
+	width: 100%;
+	height: 400px;
+}
+
+.section1
+{
+	padding-top: 80px;
+}
+
+.img_text
+{
+	position: absolute;
+	top: 20%;
+	left: 20%;
+	color: white;
+	padding-right: 20px;
+	padding-left: 250px;
+	font-size: 35px;
+}
+
+.welcome_img
+{
+	width: 100%;
+	height: 100%;
+}
+
+.container
+{
+	padding-top: 100px;
+}
+
+.teacher
+{
+	width: 10%;
+	height: 900px;
+}
+
+.form_deg
+{
+	padding-top: 200px;
+}
+
+.label_deg
+{
+	display: inline-block;
+	color: lightblue;
+	width: 100px;
+	text-align: right;
+	padding-top: 10px;
+	padding-bottom: 10px;
+}
+
+.login_form
+{
+	width: 400px;
+	padding-top: 70px;
+	padding-bottom: 70px;
+
+}
+
+
+.title_deg
+{
+	background-color: lightblue;
+	color: white;
+	text-align: center;
+	font-weight: bold;
+	width: 400px;
+	padding-top: 10px;
+	padding-bottom: 10px;
+	font-size: 20px;
+}
+
+.body_deg
+{
+	background-repeat: no-repeat;
+	background-attachment:fixed;
+	background-size: 100% 200%;
+}
+.label_text
+{
+	display: inline-block;
+	width: 100px;
+	text-align: center;
+	padding-right: 11px;
+
+}
+.input_deg
+{
+width: 30%;
+height: 30px;  
+border-radius: 25px;
+border: 1px solid blue;
+
+
+}
+.admin_int
+
+{
+	padding-top: 20px;
+}
+  	
+.input_txt
+{
+
+width: 30%;
+height: 20px;
+border-radius: 60px;
+border: 1px solid blue;
+}
+submit
+{
+ .btn-primary 
+ {
+    background-color: blue;
+    color: white;
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+
+}
+
+footer
+{
+	background-color: black;
+	height: 10px;
+	widith: 20;
+}
