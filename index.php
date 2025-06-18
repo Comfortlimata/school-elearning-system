@@ -87,7 +87,7 @@ $result = mysqli_query($data, $sql);
 </head>
 <body>
 	<nav>
-		<label class="logo">LIMATA e LEANING SCHOOL</label>
+		<label class="logo">Miles e-School Academy</label>
 		<ul>
 			<li><a href="">Home</a></li>
 			<li><a href="">Admission</a></li>
@@ -102,13 +102,13 @@ $result = mysqli_query($data, $sql);
 	</div>
 
 	<div class="container my-4">
-		<div class="limz">
+		<div class="row">
 			<div class="col-md-4">
-				<img class="welcome_img" src=".jpg" alt="Welcome">
+				<img class="welcome_img" src="row.jpg" alt="Welcome">
 			</div>
 			<div class="col-md-8">
-				<h1>Welcome To Limata1 e-School Academy</h1>
-				<p>At Extra Limata Elementary, we believe that learning is a journey — and sometimes, it takes a few extra miles! Our students don’t just stop at the basics; they zoom past the ordinary with curiosity, creativity, and a healthy dose of laughter...</p>
+				<h1>Welcome To Miles e-School Academy</h1>
+				<p>At Extra Miles Elementary, we believe that learning is a journey — and sometimes, it takes a few extra miles! Our students don’t just stop at the basics; they zoom past the ordinary with curiosity, creativity, and a healthy dose of laughter...</p>
 			</div>
 		</div>
 	</div>
@@ -138,15 +138,15 @@ $result = mysqli_query($data, $sql);
 		</div>
 	</div>
 
-<!-- Admission Form -->
-<div class="container my-5">
+	<div class="container my-5">
     <div class="row justify-content-center">
         <div class="col-md-6">
             <div class="card shadow-sm">
                 <div class="card-header bg-primary text-white text-center">
                     <h3>Admission Form</h3>
-               
-                    <form action="data_check.php" method="POST">
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="data_check.php">
                         <div class="mb-3">
                             <label for="name" class="form-label">Name:</label>
                             <input type="text" name="name" id="name" class="form-control" required>
@@ -174,37 +174,11 @@ $result = mysqli_query($data, $sql);
                             <textarea name="message" id="message" class="form-control" rows="4" required></textarea>
                         </div>
                         <div class="text-center">
-                            <button type="submit" class="btn btn-primary">Apply</button>
+                            <button type="submit" name="apply" class="btn btn-primary">Apply</button>
                         </div>
                     </form>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
-<!-- Contact Us Section -->
-<div class="contact-us" style="background-color: #f8f9fa; padding: 40px 20px; text-align: center;">
-    <h1 style="color: #007bff; margin-bottom: 30px;">Contact Us</h1>
-    <div class="contact-icons" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 20px;">
-        <!-- Phone -->
-        <div style="text-align: center;">
-            <img src="phone-icon.png" alt="Phone Icon" style="width: 50px; height: 50px; margin-bottom: 10px;">
-            <p style="font-size: 18px; font-weight: bold;">0970022456</p>
-        </div>
-        <!-- Email -->
-        <div style="text-align: center;">
-            <img src="email-icon.png" alt="Email Icon" style="width: 50px; height: 50px; margin-bottom: 10px;">
-            <p style="font-size: 18px; font-weight: bold;">comfortlimata@gmail.com</p>
-        </div>
-        <!-- Instagram -->
-        <div style="text-align: center;">
-            <img src="instagram-icon.png" alt="Instagram Icon" style="width: 50px; height: 50px; margin-bottom: 10px;">
-            <p style="font-size: 18px; font-weight: bold;">@limatacomfort</p>
-        </div>
-        <!-- Facebook -->
-        <div style="text-align: center;">
-            <img src="facebook-icon.png" alt="Facebook Icon" style="width: 50px; height: 50px; margin-bottom: 10px;">
-            <p style="font-size: 18px; font-weight: bold;">Comfort Limata</p>
         </div>
     </div>
 </div>

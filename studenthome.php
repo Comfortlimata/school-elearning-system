@@ -4,7 +4,7 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 // Redirect unauthorized users
-if (!isset($_SESSION['username']) || $_SESSION['usertype'] !== 'student') {
+if (!isset($_SESSION['username']) || $_SESSION['usertype'] !== 'students') {
     header("Location: login.php");
     exit();
 }
