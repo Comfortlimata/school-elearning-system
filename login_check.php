@@ -11,58 +11,65 @@ if (!$conn) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Check if form fields are set
-    if (!isset($_POST['username']) || !isset($_POST['password']) || !isset($_POST['usertype'])) {
+
+    $username = mysqli_real_escape_string($conn, $_POST['username'] ?? '');
+    $password = $_POST['password'] ?? '';
+    $usertype = $_POST['usertype'] ?? '';
+
+    if (empty($username) || empty($password) || empty($usertype)) {
         $_SESSION['loginMessage'] = "Please fill in all fields.";
         header("Location: login.php");
         exit();
     }
 
-    // Sanitize user input
-    $username = mysqli_real_escape_string($conn, $_POST['username']);
-    $password = mysqli_real_escape_string($conn, $_POST['password']);
-    $usertype = mysqli_real_escape_string($conn, $_POST['usertype']);
-
+    // Admin login
     if ($usertype === 'admin') {
-        // Admin login logic
-        $sql = "SELECT * FROM user WHERE username = '$username' AND password = '$password'";
-    } elseif ($usertype === 'student') {
-        // Check if program is set
-        if (!isset($_POST['program']) || empty($_POST['program'])) {
+        $sql = "SELECT * FROM user WHERE username = '$username'";
+    }
+    // Student login
+    elseif ($usertype === 'student') {
+        $program = mysqli_real_escape_string($conn, $_POST['program'] ?? '');
+
+        if (empty($program)) {
             $_SESSION['loginMessage'] = "Please select a program.";
             header("Location: login.php");
             exit();
         }
 
-        $program = mysqli_real_escape_string($conn, $_POST['program']);
-        $sql = "SELECT * FROM students WHERE username = '$username' AND password = '$password' AND program = '$program'";
-    } else {
-        $sql = '';
+        $sql = "SELECT * FROM students WHERE username = '$username' AND program = '$program'";
+    }
+    // Invalid type
+    else {
+        $_SESSION['loginMessage'] = "Invalid user type.";
+        header("Location: login.php");
+        exit();
     }
 
-    if ($sql !== '') {
-        $result = mysqli_query($conn, $sql);
-        if (!$result) {
-            die("Query error: " . mysqli_error($conn));
-        }
+    $result = mysqli_query($conn, $sql);
 
-        if (mysqli_num_rows($result) > 0) {
-            $user = mysqli_fetch_assoc($result);
+    if ($result && mysqli_num_rows($result) > 0) {
+        $user = mysqli_fetch_assoc($result);
+
+        // Password check (plain-text or hashed — adjust as needed)
+        if (password_verify($password, $user['password']) || $password === $user['password']) {
             $_SESSION['username'] = $user['username'];
             $_SESSION['usertype'] = $usertype;
 
             if ($usertype === 'admin') {
                 header("Location: adminhome.php");
             } elseif ($usertype === 'student') {
-                $_SESSION['program'] = $program; // Set the program session variable for students
+                $_SESSION['program'] = $program;
                 header("Location: studenthome.php");
             }
             exit();
         } else {
-            $_SESSION['loginMessage'] = "Invalid username or password.";
-            header("Location: login.php");
-            exit();
+            $_SESSION['loginMessage'] = "Invalid password.";
         }
+    } else {
+        $_SESSION['loginMessage'] = "Invalid login details.";
     }
+
+    header("Location: login.php");
+    exit();
 }
 ?>

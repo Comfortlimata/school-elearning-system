@@ -1,8 +1,9 @@
+
 <?php
 session_start();
 
 // Allow access only if logged in AND usertype is student
-if (!isset($_SESSION['username']) || !isset($_SESSION['usertype']) || $_SESSION['usertype'] !== 'student') {
+if (!isset($_SESSION['username']) || !isset($_SESSION['usertype']) || $_SESSION['usertype'] !== 'students') {
     header("Location: login.php");
     exit();
 }

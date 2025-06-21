@@ -1,11 +1,9 @@
 <?php
 session_start();
 
-if (!isset($_SESSION['username'])) {
-    header("location:login.php");
-    exit();
-} elseif ($_SESSION['usertype'] == 'student') {
-    header("location:login.php");
+// Check if teacher is logged in
+if (!isset($_SESSION['username']) || $_SESSION['usertype'] !== 'teacher') {
+    header("Location: teacher_login.php");
     exit();
 }
 
@@ -17,20 +15,32 @@ $db = "schoolproject";
 
 $data = mysqli_connect($host, $user, $password, $db);
 
+if (!$data) {
+    die("Database connection failed: " . mysqli_connect_error());
+}
+
+// Get teacher information
+$teacher_id = $_SESSION['teacher_id'];
+$teacher_sql = "SELECT * FROM teachers WHERE id = ?";
+$stmt = mysqli_prepare($data, $teacher_sql);
+mysqli_stmt_bind_param($stmt, "i", $teacher_id);
+mysqli_stmt_execute($stmt);
+$teacher_result = mysqli_stmt_get_result($stmt);
+$teacher = mysqli_fetch_assoc($teacher_result);
+
 // Get statistics
-$student_count = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM students"))[0];
-$teacher_count = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM teachers"))[0];
-$course_count = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM courses"))[0];
-$admission_count = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM admission"))[0];
+$specialization = $teacher['specialization'];
+$course_count = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM courses WHERE program = '$specialization'"))[0];
+$student_count = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM students WHERE program = '$specialization'"))[0];
+$total_students = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM students"))[0];
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="utf-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Admin Dashboard - Miles e-School Academy</title>
+    <title>Teacher Dashboard - Miles e-School Academy</title>
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -38,13 +48,9 @@ $admission_count = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Custom CSS -->
-    <link rel="stylesheet" type="text/css" href="style.css">
 
     <style>
         :root {
-            --sidebar-width: 280px;
-            --header-height: 70px;
             --primary-color: #2563eb;
             --secondary-color: #1e40af;
             --success-color: #10b981;
@@ -71,7 +77,7 @@ $admission_count = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM 
             left: 0;
             top: 0;
             height: 100vh;
-            width: var(--sidebar-width);
+            width: 280px;
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
             z-index: 1000;
@@ -132,7 +138,7 @@ $admission_count = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM 
         
         /* Main Content */
         .main-content {
-            margin-left: var(--sidebar-width);
+            margin-left: 280px;
             min-height: 100vh;
             transition: all 0.3s ease;
         }
@@ -140,7 +146,7 @@ $admission_count = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM 
         /* Header */
         .top-header {
             background: white;
-            height: var(--header-height);
+            height: 70px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -163,13 +169,13 @@ $admission_count = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM 
             gap: 1rem;
         }
         
-        .admin-info {
+        .teacher-info {
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
         
-        .admin-avatar {
+        .teacher-avatar {
             width: 40px;
             height: 40px;
             background: var(--primary-color);
@@ -261,10 +267,10 @@ $admission_count = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM 
             color: white;
         }
         
-        .stat-icon.students { background: var(--success-color); }
-        .stat-icon.teachers { background: var(--info-color); }
-        .stat-icon.courses { background: var(--warning-color); }
-        .stat-icon.admissions { background: var(--danger-color); }
+        .stat-icon.courses { background: var(--success-color); }
+        .stat-icon.students { background: var(--info-color); }
+        .stat-icon.total-students { background: var(--warning-color); }
+        .stat-icon.specialization { background: var(--danger-color); }
         
         .stat-number {
             font-size: 2rem;
@@ -274,7 +280,7 @@ $admission_count = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM 
         }
         
         .stat-label {
-            color: var(--text-light);
+            color: #6b7280;
             font-weight: 500;
         }
         
@@ -383,72 +389,58 @@ $admission_count = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM 
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <a href="#" class="sidebar-brand">
-                <i class="fas fa-graduation-cap me-2"></i>
-                Admin Panel
+                <i class="fas fa-chalkboard-teacher me-2"></i>
+                Teacher Portal
             </a>
         </div>
         
         <div class="sidebar-menu">
             <div class="sidebar-item">
-                <a href="adminhome.php" class="sidebar-link active">
+                <a href="teacherhome.php" class="sidebar-link active">
                     <i class="fas fa-tachometer-alt sidebar-icon"></i>
                     Dashboard
                 </a>
             </div>
             
             <div class="sidebar-item">
-                <a href="content_management.php" class="sidebar-link">
-                    <i class="fas fa-edit sidebar-icon"></i>
-                    Content Management
-                </a>
-            </div>
-            
-            <div class="sidebar-item">
-                <a href="admission.php" class="sidebar-link">
-                    <i class="fas fa-user-plus sidebar-icon"></i>
-                    Admissions
-                </a>
-            </div>
-            
-            <div class="sidebar-item">
-                <a href="add_student.php" class="sidebar-link">
-                    <i class="fas fa-user-graduate sidebar-icon"></i>
-                    Add Student
-                </a>
-            </div>
-            
-            <div class="sidebar-item">
-                <a href="view_student.php" class="sidebar-link">
-                    <i class="fas fa-users sidebar-icon"></i>
-                    View Students
-                </a>
-            </div>
-            
-            <div class="sidebar-item">
-                <a href="add_teacher.php" class="sidebar-link">
-                    <i class="fas fa-chalkboard-teacher sidebar-icon"></i>
-                    Add Teacher
-                </a>
-            </div>
-            
-            <div class="sidebar-item">
-                <a href="add_courses.php" class="sidebar-link">
+                <a href="teacher_courses.php" class="sidebar-link">
                     <i class="fas fa-book sidebar-icon"></i>
-                    Add Courses
+                    My Courses
                 </a>
             </div>
             
             <div class="sidebar-item">
-                <a href="view_courses.php" class="sidebar-link">
-                    <i class="fas fa-list sidebar-icon"></i>
-                    View Courses
+                <a href="teacher_students.php" class="sidebar-link">
+                    <i class="fas fa-users sidebar-icon"></i>
+                    My Students
                 </a>
             </div>
             
             <div class="sidebar-item">
-                <a href="settings.php" class="sidebar-link">
-                    <i class="fas fa-cog sidebar-icon"></i>
-                    Settings
+                <a href="teacher_assignments.php" class="sidebar-link">
+                    <i class="fas fa-tasks sidebar-icon"></i>
+                    Assignments
+                </a>
+            </div>
+            
+            <div class="sidebar-item">
+                <a href="teacher_grades.php" class="sidebar-link">
+                    <i class="fas fa-chart-bar sidebar-icon"></i>
+                    Grades
+                </a>
+            </div>
+            
+            <div class="sidebar-item">
+                <a href="teacher_profile.php" class="sidebar-link">
+                    <i class="fas fa-user sidebar-icon"></i>
+                    Profile
+                </a>
+            </div>
+            
+            <div class="sidebar-item">
+                <a href="teacher_schedule.php" class="sidebar-link">
+                    <i class="fas fa-calendar sidebar-icon"></i>
+                    Schedule
                 </a>
             </div>
         </div>
@@ -466,13 +458,13 @@ $admission_count = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM 
             </div>
             
             <div class="header-actions">
-                <div class="admin-info">
-                    <div class="admin-avatar">
+                <div class="teacher-info">
+                    <div class="teacher-avatar">
                         <i class="fas fa-user"></i>
                     </div>
                     <div>
                         <div class="fw-bold"><?php echo htmlspecialchars($_SESSION['username']); ?></div>
-                        <small class="text-muted">Administrator</small>
+                        <small class="text-muted"><?php echo htmlspecialchars($teacher['specialization']); ?> Teacher</small>
                     </div>
                 </div>
                 
@@ -487,31 +479,11 @@ $admission_count = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM 
             <!-- Welcome Section -->
             <div class="welcome-section">
                 <h1 class="welcome-title">Welcome back, <?php echo htmlspecialchars($_SESSION['username']); ?>!</h1>
-                <p class="welcome-subtitle">Here's what's happening with your school management system today.</p>
+                <p class="welcome-subtitle">Here's your teaching dashboard overview for today.</p>
             </div>
 
             <!-- Statistics -->
             <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-header">
-                        <div class="stat-icon students">
-                            <i class="fas fa-user-graduate"></i>
-                        </div>
-                    </div>
-                    <div class="stat-number"><?php echo $student_count; ?></div>
-                    <div class="stat-label">Total Students</div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-header">
-                        <div class="stat-icon teachers">
-                            <i class="fas fa-chalkboard-teacher"></i>
-                        </div>
-                    </div>
-                    <div class="stat-number"><?php echo $teacher_count; ?></div>
-                    <div class="stat-label">Total Teachers</div>
-                </div>
-                
                 <div class="stat-card">
                     <div class="stat-header">
                         <div class="stat-icon courses">
@@ -519,17 +491,37 @@ $admission_count = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM 
                         </div>
                     </div>
                     <div class="stat-number"><?php echo $course_count; ?></div>
-                    <div class="stat-label">Total Courses</div>
+                    <div class="stat-label">My Courses</div>
                 </div>
                 
                 <div class="stat-card">
                     <div class="stat-header">
-                        <div class="stat-icon admissions">
-                            <i class="fas fa-user-plus"></i>
+                        <div class="stat-icon students">
+                            <i class="fas fa-users"></i>
                         </div>
                     </div>
-                    <div class="stat-number"><?php echo $admission_count; ?></div>
-                    <div class="stat-label">New Admissions</div>
+                    <div class="stat-number"><?php echo $student_count; ?></div>
+                    <div class="stat-label">My Students</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon total-students">
+                            <i class="fas fa-user-graduate"></i>
+                        </div>
+                    </div>
+                    <div class="stat-number"><?php echo $total_students; ?></div>
+                    <div class="stat-label">Total Students</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon specialization">
+                            <i class="fas fa-star"></i>
+                        </div>
+                    </div>
+                    <div class="stat-number"><?php echo htmlspecialchars($teacher['experience_years']); ?>+</div>
+                    <div class="stat-label">Years Experience</div>
                 </div>
             </div>
 
@@ -537,52 +529,52 @@ $admission_count = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM 
             <div class="quick-actions">
                 <h2 class="section-title">Quick Actions</h2>
                 <div class="actions-grid">
-                    <a href="content_management.php" class="action-card">
-                        <div class="action-icon">
-                            <i class="fas fa-edit"></i>
-                        </div>
-                        <div class="action-title">Manage Content</div>
-                        <div class="action-desc">Update website content and information</div>
-                    </a>
-                    
-                    <a href="add_student.php" class="action-card">
-                        <div class="action-icon">
-                            <i class="fas fa-user-plus"></i>
-                        </div>
-                        <div class="action-title">Add Student</div>
-                        <div class="action-desc">Register new students</div>
-                    </a>
-                    
-                    <a href="add_teacher.php" class="action-card">
-                        <div class="action-icon">
-                            <i class="fas fa-chalkboard-teacher"></i>
-                        </div>
-                        <div class="action-title">Add Teacher</div>
-                        <div class="action-desc">Register new teachers</div>
-                    </a>
-                    
-                    <a href="add_courses.php" class="action-card">
+                    <a href="teacher_courses.php" class="action-card">
                         <div class="action-icon">
                             <i class="fas fa-book"></i>
                         </div>
-                        <div class="action-title">Add Course</div>
-                        <div class="action-desc">Create new courses</div>
+                        <div class="action-title">View Courses</div>
+                        <div class="action-desc">Manage your course materials</div>
                     </a>
                     
-                    <a href="view_student.php" class="action-card">
+                    <a href="teacher_students.php" class="action-card">
                         <div class="action-icon">
                             <i class="fas fa-users"></i>
                         </div>
-                        <div class="action-title">View Students</div>
-                        <div class="action-desc">Manage student records</div>
+                        <div class="action-title">Student List</div>
+                        <div class="action-desc">View your students</div>
                     </a>
                     
-                    <a href="admission.php" class="action-card">
+                    <a href="teacher_assignments.php" class="action-card">
                         <div class="action-icon">
-                            <i class="fas fa-clipboard-list"></i>
+                            <i class="fas fa-tasks"></i>
                         </div>
-                        <div class="action-title">Admissions</div>
-                        <div class="action-desc">Review applications</div>
+                        <div class="action-title">Assignments</div>
+                        <div class="action-desc">Create and grade assignments</div>
+                    </a>
+                    
+                    <a href="teacher_grades.php" class="action-card">
+                        <div class="action-icon">
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
+                        <div class="action-title">Grades</div>
+                        <div class="action-desc">Manage student grades</div>
+                    </a>
+                    
+                    <a href="teacher_profile.php" class="action-card">
+                        <div class="action-icon">
+                            <i class="fas fa-user-edit"></i>
+                        </div>
+                        <div class="action-title">Update Profile</div>
+                        <div class="action-desc">Edit your information</div>
+                    </a>
+                    
+                    <a href="teacher_schedule.php" class="action-card">
+                        <div class="action-icon">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                        <div class="action-title">Schedule</div>
+                        <div class="action-desc">View your teaching schedule</div>
                     </a>
                 </div>
             </div>
@@ -621,4 +613,4 @@ $admission_count = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM 
         });
     </script>
 </body>
-</html>
+</html> 

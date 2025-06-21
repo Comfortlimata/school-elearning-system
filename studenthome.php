@@ -3,28 +3,14 @@ session_start();
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// Redirect unauthorized users
-if (!isset($_SESSION['username']) || $_SESSION['usertype'] !== 'students') {
+// Redirect unauthorized access
+if (!isset($_SESSION['username']) || $_SESSION['usertype'] !== 'student') {
     header("Location: login.php");
     exit();
 }
 
-// Database connection
-$conn = mysqli_connect("localhost", "root", "", "schoolproject");
-
-if (!$conn) {
-    die("Database connection failed: " . mysqli_connect_error());
-}
-
-// Get the student's program from the session
+$username = $_SESSION['username'];
 $program = $_SESSION['program'];
-
-// Fetch courses based on the student's program
-$courses = mysqli_query($conn, "SELECT * FROM courses WHERE program = '$program'");
-
-if (!$courses) {
-    die("Query failed: " . mysqli_error($conn));
-}
 ?>
 
 <!DOCTYPE html>
@@ -34,79 +20,87 @@ if (!$courses) {
     <title>Student Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <!-- Bootstrap CSS CDN -->
+    <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+
     <style>
         body {
             background-color: #f8f9fa;
         }
-        .container {
-            margin-top: 60px;
+
+        .sidebar {
+            height: 100vh;
+            background-color: #343a40;
+            color: white;
+            padding-top: 60px;
+            position: fixed;
+            width: 220px;
         }
+
+        .sidebar h4 {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .sidebar a {
+            display: block;
+            color: white;
+            padding: 12px 20px;
+            text-decoration: none;
+            transition: 0.2s;
+        }
+
+        .sidebar a:hover {
+            background-color: #495057;
+        }
+
+        .content {
+            margin-left: 230px;
+            padding: 30px;
+        }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 220px;
+            right: 0;
+            z-index: 1000;
+        }
+
         .card {
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        th, td {
-            vertical-align: middle;
-        }
-        .btn-back {
-            margin-top: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            padding: 30px;
         }
     </style>
 </head>
 <body>
 
-<!-- Navigation Header -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+<!-- Sidebar -->
+<div class="sidebar">
+    <h4><?= htmlspecialchars($username) ?> 👋</h4>
+    <a href="student_courses.php">📚 View My Courses</a>
+    <a href="student_results.php">📈 Results</a>
+    <a href="student_account.php">👤 Account</a>
+    <a href="logout.php" style="color: #ffc107;">🚪 Logout</a>
+</div>
+
+<!-- Top Navbar -->
+<nav class="navbar navbar-dark bg-primary">
     <div class="container-fluid">
-        <a class="navbar-brand" href="#">Student Dashboard</a>
-        <div class="d-flex">
-            <span class="text-white me-3">Welcome, <?= htmlspecialchars($_SESSION['username']) ?></span>
-            <a href="logout.php" class="btn btn-outline-light btn-sm">Logout</a>
-        </div>
+        <span class="navbar-brand">Student Dashboard</span>
+        <span class="text-white">Program: <?= htmlspecialchars($program) ?></span>
     </div>
 </nav>
 
 <!-- Main Content -->
-<div class="container">
-    <div class="card">
-        <div class="card-header bg-primary text-white text-center">
-            <h3>Courses for <?= htmlspecialchars($program) ?></h3>
-        </div>
-        <div class="card-body">
-            <table class="table table-striped table-hover table-bordered align-middle">
-                <thead class="table-primary">
-                    <tr>
-                        <th>Course Name</th>
-                        <th>Code</th>
-                        <th>Description</th>
-                        <th>Document</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php while ($row = mysqli_fetch_assoc($courses)) { ?>
-                    <tr>
-                        <td><?= htmlspecialchars($row['course_name']) ?></td>
-                        <td><?= htmlspecialchars($row['course_code']) ?></td>
-                        <td><?= nl2br(htmlspecialchars($row['course_description'])) ?></td>
-                        <td class="text-center">
-                            <?php if ($row['document_path']) { ?>
-                                <a href="<?= htmlspecialchars($row['document_path']) ?>" target="_blank" class="btn btn-sm btn-success">Download</a>
-                            <?php } else { ?>
-                                <span class="text-muted">No document</span>
-                            <?php } ?>
-                        </td>
-                    </tr>
-                    <?php } ?>
-                </tbody>
-            </table>
+<div class="content">
+    <div class="container">
+        <div class="card">
+            <h2>Welcome, <?= htmlspecialchars($username) ?>!</h2>
+            <p>This is your student dashboard. Use the sidebar to access your courses, view results, and manage your account.</p>
         </div>
     </div>
 </div>
-
-<!-- Bootstrap JS (Optional) -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
 </html>
