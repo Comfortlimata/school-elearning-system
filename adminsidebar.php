@@ -37,6 +37,9 @@
   			<a href="">View Course</a>
   		</li>
 
+  		<li>
+  			<a href="add_teacher_auth.php">Add Teacher</a>
+  		</li>
 
   	</ul>  
   </aside>

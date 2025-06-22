@@ -1,6 +1,10 @@
 <?php
 session_start();
 
+// Enable error reporting for debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 if (!isset($_SESSION['username'])) {
     header("location:login.php");
     exit();
@@ -16,6 +20,10 @@ $password = "";
 $db = "schoolproject";
 
 $data = mysqli_connect($host, $user, $password, $db);
+
+if (!$data) {
+    die("Database connection failed: " . mysqli_connect_error());
+}
 
 // Handle form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -212,25 +220,7 @@ if (mysqli_num_rows($content_result) > 0) {
             gap: 1rem;
         }
         
-        .admin-info {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .admin-avatar {
-            width: 40px;
-            height: 40px;
-            background: var(--primary-color);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 600;
-        }
-        
-        .logout-btn {
+        .btn-logout {
             background: var(--danger-color);
             color: white;
             border: none;
@@ -240,13 +230,12 @@ if (mysqli_num_rows($content_result) > 0) {
             transition: all 0.3s ease;
         }
         
-        .logout-btn:hover {
+        .btn-logout:hover {
             background: #dc2626;
             color: white;
-            transform: translateY(-2px);
         }
         
-        /* Content Management */
+        /* Content Management Styles */
         .content-section {
             padding: 2rem;
         }
@@ -255,15 +244,13 @@ if (mysqli_num_rows($content_result) > 0) {
             background: white;
             border-radius: 15px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            border: 1px solid var(--border-color);
-            margin-bottom: 2rem;
+            overflow: hidden;
         }
         
         .content-header {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
-            padding: 1.5rem;
-            border-radius: 15px 15px 0 0;
+            padding: 2rem;
         }
         
         .content-body {
@@ -278,12 +265,11 @@ if (mysqli_num_rows($content_result) > 0) {
             font-weight: 600;
             color: var(--dark-color);
             margin-bottom: 0.5rem;
-            display: block;
         }
         
         .form-control {
-            border-radius: 10px;
             border: 2px solid var(--border-color);
+            border-radius: 10px;
             padding: 0.75rem 1rem;
             transition: all 0.3s ease;
         }
@@ -296,8 +282,8 @@ if (mysqli_num_rows($content_result) > 0) {
         .btn-primary {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             border: none;
-            border-radius: 50px;
-            padding: 12px 30px;
+            border-radius: 10px;
+            padding: 0.75rem 2rem;
             font-weight: 600;
             transition: all 0.3s ease;
         }
@@ -307,28 +293,10 @@ if (mysqli_num_rows($content_result) > 0) {
             box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3);
         }
         
-        .alert {
-            border-radius: 10px;
-            border: none;
-            margin-bottom: 1.5rem;
-        }
-        
-        .alert-success {
-            background: #d1fae5;
-            color: #065f46;
-            border-left: 4px solid #10b981;
-        }
-        
-        .alert-danger {
-            background: #fee2e2;
-            color: #991b1b;
-            border-left: 4px solid #ef4444;
-        }
-        
         .preview-section {
             background: var(--light-color);
-            padding: 2rem;
-            border-radius: 15px;
+            border-radius: 10px;
+            padding: 1.5rem;
             margin-top: 2rem;
         }
         
@@ -341,12 +309,15 @@ if (mysqli_num_rows($content_result) > 0) {
         
         .preview-content {
             background: white;
-            padding: 1.5rem;
             border-radius: 10px;
-            border: 1px solid var(--border-color);
+            padding: 1.5rem;
         }
         
-        /* Responsive */
+        .alert {
+            border-radius: 10px;
+            border: none;
+        }
+        
         @media (max-width: 768px) {
             .sidebar {
                 transform: translateX(-100%);
@@ -359,20 +330,9 @@ if (mysqli_num_rows($content_result) > 0) {
             .main-content {
                 margin-left: 0;
             }
-        }
-        
-        /* Toggle Button */
-        .sidebar-toggle {
-            display: none;
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            color: var(--dark-color);
-        }
-        
-        @media (max-width: 768px) {
-            .sidebar-toggle {
-                display: block;
+            
+            .content-section {
+                padding: 1rem;
             }
         }
     </style>
@@ -382,7 +342,7 @@ if (mysqli_num_rows($content_result) > 0) {
     <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <a href="#" class="sidebar-brand">
+            <a href="adminhome.php" class="sidebar-brand">
                 <i class="fas fa-graduation-cap me-2"></i>
                 Admin Panel
             </a>
@@ -425,7 +385,7 @@ if (mysqli_num_rows($content_result) > 0) {
             </div>
             
             <div class="sidebar-item">
-                <a href="add_teacher.php" class="sidebar-link">
+                <a href="add_teacher_auth.php" class="sidebar-link">
                     <i class="fas fa-chalkboard-teacher sidebar-icon"></i>
                     Add Teacher
                 </a>
@@ -438,148 +398,177 @@ if (mysqli_num_rows($content_result) > 0) {
                 </a>
             </div>
             
-      
-    <!-- Content Management -->
-    <div class="container-fluid p-4">
-        <?php if (isset($success_message)): ?>
-            <div class="alert alert-success">
-                <i class="fas fa-check-circle me-2"></i>
-                <?php echo htmlspecialchars($success_message); ?>
+            <div class="sidebar-item">
+                <a href="view_courses.php" class="sidebar-link">
+                    <i class="fas fa-list sidebar-icon"></i>
+                    View Courses
+                </a>
             </div>
-        <?php endif; ?>
-        
-        <?php if (isset($error_message)): ?>
-            <div class="alert alert-danger">
-                <i class="fas fa-exclamation-triangle me-2"></i>
-                <?php echo htmlspecialchars($error_message); ?>
-            </div>
-        <?php endif; ?>
+        </div>
+    </div>
 
-        <!-- Content Management Form -->
-        <div class="content-section">
-            <div class="content-card">
-                <div class="content-header">
-                    <h3><i class="fas fa-edit me-2"></i>Website Content Management</h3>
-                    <p class="mb-0">Update the content displayed on the homepage</p>
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <div class="top-header">
+            <div class="header-title">
+                <i class="fas fa-edit me-2"></i>
+                Content Management
+            </div>
+            <div class="header-actions">
+                <a href="adminhome.php" class="btn btn-outline-primary">
+                    <i class="fas fa-home me-1"></i>
+                    Dashboard
+                </a>
+                <a href="logout.php" class="btn-logout">
+                    <i class="fas fa-sign-out-alt me-1"></i>
+                    Logout
+                </a>
+            </div>
+        </div>
+
+        <!-- Content Management -->
+        <div class="container-fluid p-4">
+            <?php if (isset($success_message)): ?>
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle me-2"></i>
+                    <?php echo htmlspecialchars($success_message); ?>
                 </div>
-                <div class="content-body">
-                    <form method="POST">
-                        <!-- Hero Section -->
-                        <div class="row mb-4">
-                            <div class="col-12">
-                                <h4 class="mb-3">Hero Section</h4>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="form-label">Hero Title</label>
-                                    <input type="text" name="hero_title" class="form-control" value="<?php echo htmlspecialchars($content['hero_title']); ?>" required>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="form-label">Hero Subtitle</label>
-                                    <textarea name="hero_subtitle" class="form-control" rows="3" required><?php echo htmlspecialchars($content['hero_subtitle']); ?></textarea>
-                                </div>
-                            </div>
-                        </div>
+            <?php endif; ?>
+            
+            <?php if (isset($error_message)): ?>
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <?php echo htmlspecialchars($error_message); ?>
+                </div>
+            <?php endif; ?>
 
-                        <!-- About Section -->
-                        <div class="row mb-4">
-                            <div class="col-12">
-                                <h4 class="mb-3">About Section</h4>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="form-label">About Title</label>
-                                    <input type="text" name="about_title" class="form-control" value="<?php echo htmlspecialchars($content['about_title']); ?>" required>
+            <!-- Content Management Form -->
+            <div class="content-section">
+                <div class="content-card">
+                    <div class="content-header">
+                        <h3><i class="fas fa-edit me-2"></i>Website Content Management</h3>
+                        <p class="mb-0">Update the content displayed on the homepage</p>
+                    </div>
+                    <div class="content-body">
+                        <form method="POST">
+                            <!-- Hero Section -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h4 class="mb-3">Hero Section</h4>
                                 </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="form-label">About Content</label>
-                                    <textarea name="about_content" class="form-control" rows="4" required><?php echo htmlspecialchars($content['about_content']); ?></textarea>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Contact Information -->
-                        <div class="row mb-4">
-                            <div class="col-12">
-                                <h4 class="mb-3">Contact Information</h4>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="form-label">Address</label>
-                                    <textarea name="contact_address" class="form-control" rows="2" required><?php echo htmlspecialchars($content['contact_address']); ?></textarea>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="form-label">Phone Number</label>
-                                    <input type="text" name="contact_phone" class="form-control" value="<?php echo htmlspecialchars($content['contact_phone']); ?>" required>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="form-label">Email Address</label>
-                                    <input type="email" name="contact_email" class="form-control" value="<?php echo htmlspecialchars($content['contact_email']); ?>" required>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="form-label">Office Hours</label>
-                                    <textarea name="contact_hours" class="form-control" rows="2" required><?php echo htmlspecialchars($content['contact_hours']); ?></textarea>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Preview Section -->
-                        <div class="preview-section">
-                            <div class="preview-title">Content Preview</div>
-                            <div class="preview-content">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <h5>Hero Section</h5>
-                                        <h3><?php echo htmlspecialchars($content['hero_title']); ?></h3>
-                                        <p class="text-muted"><?php echo htmlspecialchars($content['hero_subtitle']); ?></p>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <h5>About Section</h5>
-                                        <h4><?php echo htmlspecialchars($content['about_title']); ?></h4>
-                                        <p><?php echo htmlspecialchars($content['about_content']); ?></p>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Hero Title</label>
+                                        <input type="text" name="hero_title" class="form-control" value="<?php echo htmlspecialchars($content['hero_title']); ?>" required>
                                     </div>
                                 </div>
-                                <hr>
-                                <div class="row">
-                                    <div class="col-12">
-                                        <h5>Contact Information</h5>
-                                        <div class="row">
-                                            <div class="col-md-3">
-                                                <strong>Address:</strong><br>
-                                                <small><?php echo nl2br(htmlspecialchars($content['contact_address'])); ?></small>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <strong>Phone:</strong><br>
-                                                <small><?php echo htmlspecialchars($content['contact_phone']); ?></small>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <strong>Email:</strong><br>
-                                                <small><?php echo htmlspecialchars($content['contact_email']); ?></small>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <strong>Hours:</strong><br>
-                                                <small><?php echo nl2br(htmlspecialchars($content['contact_hours'])); ?></small>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Hero Subtitle</label>
+                                        <textarea name="hero_subtitle" class="form-control" rows="3" required><?php echo htmlspecialchars($content['hero_subtitle']); ?></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- About Section -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h4 class="mb-3">About Section</h4>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">About Title</label>
+                                        <input type="text" name="about_title" class="form-control" value="<?php echo htmlspecialchars($content['about_title']); ?>" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">About Content</label>
+                                        <textarea name="about_content" class="form-control" rows="4" required><?php echo htmlspecialchars($content['about_content']); ?></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Contact Information -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h4 class="mb-3">Contact Information</h4>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Address</label>
+                                        <textarea name="contact_address" class="form-control" rows="2" required><?php echo htmlspecialchars($content['contact_address']); ?></textarea>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Phone Number</label>
+                                        <input type="text" name="contact_phone" class="form-control" value="<?php echo htmlspecialchars($content['contact_phone']); ?>" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Email Address</label>
+                                        <input type="email" name="contact_email" class="form-control" value="<?php echo htmlspecialchars($content['contact_email']); ?>" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Office Hours</label>
+                                        <textarea name="contact_hours" class="form-control" rows="2" required><?php echo htmlspecialchars($content['contact_hours']); ?></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Preview Section -->
+                            <div class="preview-section">
+                                <div class="preview-title">Content Preview</div>
+                                <div class="preview-content">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h5>Hero Section</h5>
+                                            <h3><?php echo htmlspecialchars($content['hero_title']); ?></h3>
+                                            <p class="text-muted"><?php echo htmlspecialchars($content['hero_subtitle']); ?></p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h5>About Section</h5>
+                                            <h4><?php echo htmlspecialchars($content['about_title']); ?></h4>
+                                            <p><?php echo htmlspecialchars($content['about_content']); ?></p>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <h5>Contact Information</h5>
+                                            <div class="row">
+                                                <div class="col-md-3">
+                                                    <strong>Address:</strong><br>
+                                                    <small><?php echo nl2br(htmlspecialchars($content['contact_address'])); ?></small>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <strong>Phone:</strong><br>
+                                                    <small><?php echo htmlspecialchars($content['contact_phone']); ?></small>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <strong>Email:</strong><br>
+                                                    <small><?php echo htmlspecialchars($content['contact_email']); ?></small>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <strong>Hours:</strong><br>
+                                                    <small><?php echo nl2br(htmlspecialchars($content['contact_hours'])); ?></small>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <button type="submit" name="update_content" class="btn btn-primary">
-                            <i class="fas fa-save me-2"></i>Update All Content
-                        </button>
-                    </form>
+                            <button type="submit" name="update_content" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Update All Content
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
@@ -590,23 +579,6 @@ if (mysqli_num_rows($content_result) > 0) {
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    // Sidebar toggle for mobile
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    const sidebar = document.getElementById('sidebar');
-    
-    sidebarToggle.addEventListener('click', () => {
-        sidebar.classList.toggle('open');
-    });
-    
-    // Close sidebar when clicking outside on mobile
-    document.addEventListener('click', (e) => {
-        if (window.innerWidth <= 768) {
-            if (!sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
-                sidebar.classList.remove('open');
-            }
-        }
-    });
-    
     // Auto-hide alerts after 5 seconds
     setTimeout(() => {
         const alerts = document.querySelectorAll('.alert');

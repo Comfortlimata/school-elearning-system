@@ -263,6 +263,12 @@ unset($_SESSION['successMessage']);
                             </div>
                             <div>Admin</div>
                         </div>
+                        <div class="user-type-option" data-type="teacher">
+                            <div class="user-type-icon">
+                                <i class="fas fa-chalkboard-teacher"></i>
+                            </div>
+                            <div>Teacher</div>
+                        </div>
                         <div class="user-type-option" data-type="student">
                             <div class="user-type-icon">
                                 <i class="fas fa-user-graduate"></i>

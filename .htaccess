@@ -1,0 +1,44 @@
+# Enable PHP processing
+AddHandler application/x-httpd-php .php
+
+# Set default index file
+DirectoryIndex index.php
+
+# Enable URL rewriting
+RewriteEngine On
+
+# Security headers
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options nosniff
+    Header always set X-Frame-Options DENY
+    Header always set X-XSS-Protection "1; mode=block"
+</IfModule>
+
+# PHP settings
+<IfModule mod_php7.c>
+    php_flag display_errors On
+    php_flag log_errors On
+    php_value error_log /tmp/php_errors.log
+    php_value upload_max_filesize 10M
+    php_value post_max_size 10M
+    php_value max_execution_time 300
+    php_value memory_limit 256M
+</IfModule>
+
+# Allow access to all PHP files
+<Files "*.php">
+    Require all granted
+</Files>
+
+# Protect sensitive files
+<Files ".htaccess">
+    Require all denied
+</Files>
+
+<Files "*.log">
+    Require all denied
+</Files>
+
+# Custom error pages
+ErrorDocument 404 /404.php
+ErrorDocument 500 /500.php 

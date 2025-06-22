@@ -3,14 +3,11 @@ session_start();
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// Redirect unauthorized access
+// Check user session and usertype = 'student'
 if (!isset($_SESSION['username']) || $_SESSION['usertype'] !== 'student') {
     header("Location: login.php");
     exit();
 }
-
-$username = $_SESSION['username'];
-$program = $_SESSION['program'];
 
 // Database connection
 $host = "localhost";
@@ -24,11 +21,8 @@ if (!$data) {
     die("Database connection failed: " . mysqli_connect_error());
 }
 
-// Get student statistics
-$student_id = $_SESSION['student_id'] ?? null;
-$course_count = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM courses WHERE program = '$program'"))[0];
-$total_students = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM students WHERE program = '$program'"))[0];
-$total_courses = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM courses"))[0];
+$username = $_SESSION['username'];
+$program = $_SESSION['program'];
 
 // Get student information
 $student_sql = "SELECT * FROM students WHERE username = ?";
@@ -37,6 +31,22 @@ mysqli_stmt_bind_param($stmt, "s", $username);
 mysqli_stmt_execute($stmt);
 $student_result = mysqli_stmt_get_result($stmt);
 $student = mysqli_fetch_assoc($student_result);
+
+// Get student's courses and results (placeholder data for now)
+$courses_sql = "SELECT * FROM courses WHERE program = ?";
+$stmt = mysqli_prepare($data, $courses_sql);
+mysqli_stmt_bind_param($stmt, "s", $program);
+mysqli_stmt_execute($stmt);
+$courses_result = mysqli_stmt_get_result($stmt);
+
+// Sample results data (in a real system, this would come from a results/grades table)
+$sample_results = [
+    ['course' => 'Mathematics', 'grade' => 'A', 'score' => 85, 'status' => 'Passed'],
+    ['course' => 'Physics', 'grade' => 'B+', 'score' => 78, 'status' => 'Passed'],
+    ['course' => 'Computer Science', 'grade' => 'A-', 'score' => 82, 'status' => 'Passed'],
+    ['course' => 'English', 'grade' => 'B', 'score' => 75, 'status' => 'Passed'],
+    ['course' => 'Chemistry', 'grade' => 'A', 'score' => 88, 'status' => 'Passed']
+];
 ?>
 
 <!DOCTYPE html>
@@ -44,7 +54,7 @@ $student = mysqli_fetch_assoc($student_result);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Student Dashboard - Miles e-School Academy</title>
+    <title>My Results - Student Dashboard</title>
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -74,7 +84,7 @@ $student = mysqli_fetch_assoc($student_result);
             background: var(--light-color);
             overflow-x: hidden;
         }
-
+        
         /* Sidebar Styles */
         .sidebar {
             position: fixed;
@@ -94,7 +104,7 @@ $student = mysqli_fetch_assoc($student_result);
             border-bottom: 1px solid rgba(255,255,255,0.1);
             text-align: center;
         }
-
+        
         .sidebar-brand {
             font-size: 1.5rem;
             font-weight: 700;
@@ -207,12 +217,12 @@ $student = mysqli_fetch_assoc($student_result);
             transform: translateY(-2px);
         }
         
-        /* Dashboard Content */
-        .dashboard-content {
+        /* Results Content */
+        .results-content {
             padding: 2rem;
         }
         
-        .welcome-section {
+        .page-header {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
             padding: 2rem;
@@ -220,13 +230,13 @@ $student = mysqli_fetch_assoc($student_result);
             margin-bottom: 2rem;
         }
         
-        .welcome-title {
+        .page-title {
             font-size: 2rem;
             font-weight: 700;
             margin-bottom: 0.5rem;
         }
         
-        .welcome-subtitle {
+        .page-subtitle {
             opacity: 0.9;
             font-size: 1.1rem;
         }
@@ -234,7 +244,7 @@ $student = mysqli_fetch_assoc($student_result);
         /* Stats Cards */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 1.5rem;
             margin-bottom: 2rem;
         }
@@ -245,6 +255,7 @@ $student = mysqli_fetch_assoc($student_result);
             border-radius: 15px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             border: 1px solid var(--border-color);
+            text-align: center;
             transition: all 0.3s ease;
         }
         
@@ -253,28 +264,22 @@ $student = mysqli_fetch_assoc($student_result);
             box-shadow: 0 8px 25px rgba(0,0,0,0.15);
         }
         
-        .stat-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 1rem;
-        }
-        
         .stat-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 1.5rem;
             color: white;
+            margin: 0 auto 1rem;
         }
         
-        .stat-icon.courses { background: var(--success-color); }
-        .stat-icon.students { background: var(--info-color); }
-        .stat-icon.total-courses { background: var(--warning-color); }
-        .stat-icon.program { background: var(--danger-color); }
+        .stat-icon.gpa { background: var(--success-color); }
+        .stat-icon.courses { background: var(--info-color); }
+        .stat-icon.passed { background: var(--warning-color); }
+        .stat-icon.rank { background: var(--danger-color); }
         
         .stat-number {
             font-size: 2rem;
@@ -288,65 +293,71 @@ $student = mysqli_fetch_assoc($student_result);
             font-weight: 500;
         }
         
-        /* Quick Actions */
-        .quick-actions {
+        /* Results Table */
+        .results-card {
             background: white;
-            padding: 2rem;
             border-radius: 15px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             border: 1px solid var(--border-color);
+            overflow: hidden;
         }
         
-        .section-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: var(--dark-color);
-            margin-bottom: 1.5rem;
-        }
-        
-        .actions-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-        }
-        
-        .action-card {
+        .results-header {
             background: var(--light-color);
             padding: 1.5rem;
-            border-radius: 12px;
-            text-align: center;
-            text-decoration: none;
-            color: var(--dark-color);
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
+            border-bottom: 1px solid var(--border-color);
         }
         
-        .action-card:hover {
-            background: var(--primary-color);
-            color: white;
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
-        }
-        
-        .action-icon {
-            font-size: 2rem;
-            margin-bottom: 1rem;
-            color: var(--primary-color);
-        }
-        
-        .action-card:hover .action-icon {
-            color: white;
-        }
-        
-        .action-title {
+        .results-title {
+            font-size: 1.25rem;
             font-weight: 600;
-            margin-bottom: 0.5rem;
+            color: var(--dark-color);
+            margin: 0;
         }
         
-        .action-desc {
-            font-size: 0.9rem;
-            opacity: 0.8;
+        .results-table {
+            margin: 0;
         }
+        
+        .results-table th {
+            background: var(--light-color);
+            border: none;
+            padding: 1rem;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+        
+        .results-table td {
+            border: none;
+            padding: 1rem;
+            vertical-align: middle;
+        }
+        
+        .results-table tbody tr:hover {
+            background: var(--light-color);
+        }
+        
+        .grade-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+        
+        .grade-a { background: #d1fae5; color: #065f46; }
+        .grade-b { background: #dbeafe; color: #1e40af; }
+        .grade-c { background: #fef3c7; color: #92400e; }
+        .grade-d { background: #fee2e2; color: #991b1b; }
+        
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .status-passed { background: #d1fae5; color: #065f46; }
+        .status-failed { background: #fee2e2; color: #991b1b; }
         
         /* Responsive */
         @media (max-width: 768px) {
@@ -363,10 +374,6 @@ $student = mysqli_fetch_assoc($student_result);
             }
             
             .stats-grid {
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            }
-            
-            .actions-grid {
                 grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             }
         }
@@ -400,7 +407,7 @@ $student = mysqli_fetch_assoc($student_result);
         
         <div class="sidebar-menu">
             <div class="sidebar-item">
-                <a href="studenthome.php" class="sidebar-link active">
+                <a href="studenthome.php" class="sidebar-link">
                     <i class="fas fa-tachometer-alt sidebar-icon"></i>
                     Dashboard
                 </a>
@@ -414,7 +421,7 @@ $student = mysqli_fetch_assoc($student_result);
             </div>
             
             <div class="sidebar-item">
-                <a href="student_results.php" class="sidebar-link">
+                <a href="student_results.php" class="sidebar-link active">
                     <i class="fas fa-chart-bar sidebar-icon"></i>
                     My Results
                 </a>
@@ -432,8 +439,8 @@ $student = mysqli_fetch_assoc($student_result);
                     <i class="fas fa-calendar sidebar-icon"></i>
                     Schedule
                 </a>
-</div>
-
+            </div>
+            
             <div class="sidebar-item">
                 <a href="student_profile.php" class="sidebar-link">
                     <i class="fas fa-user sidebar-icon"></i>
@@ -443,7 +450,7 @@ $student = mysqli_fetch_assoc($student_result);
         </div>
     </div>
 
-<!-- Main Content -->
+    <!-- Main Content -->
     <div class="main-content">
         <!-- Header -->
         <div class="top-header">
@@ -451,7 +458,7 @@ $student = mysqli_fetch_assoc($student_result);
                 <button class="sidebar-toggle me-3" id="sidebarToggle">
                     <i class="fas fa-bars"></i>
                 </button>
-                <h1 class="header-title mb-0">Dashboard</h1>
+                <h1 class="header-title mb-0">My Results</h1>
             </div>
             
             <div class="header-actions">
@@ -471,108 +478,97 @@ $student = mysqli_fetch_assoc($student_result);
             </div>
         </div>
 
-        <!-- Dashboard Content -->
-        <div class="dashboard-content">
-            <!-- Welcome Section -->
-            <div class="welcome-section">
-                <h1 class="welcome-title">Welcome back, <?php echo htmlspecialchars($username); ?>!</h1>
-                <p class="welcome-subtitle">Here's your learning dashboard overview for today.</p>
+        <!-- Results Content -->
+        <div class="results-content">
+            <!-- Page Header -->
+            <div class="page-header">
+                <h1 class="page-title">Academic Results</h1>
+                <p class="page-subtitle">Your current academic performance and grades</p>
             </div>
 
             <!-- Statistics -->
             <div class="stats-grid">
                 <div class="stat-card">
-                    <div class="stat-header">
-                        <div class="stat-icon courses">
-                            <i class="fas fa-book"></i>
-                        </div>
+                    <div class="stat-icon gpa">
+                        <i class="fas fa-star"></i>
                     </div>
-                    <div class="stat-number"><?php echo $course_count; ?></div>
-                    <div class="stat-label">My Courses</div>
+                    <div class="stat-number">3.8</div>
+                    <div class="stat-label">GPA</div>
                 </div>
                 
                 <div class="stat-card">
-                    <div class="stat-header">
-                        <div class="stat-icon students">
-                            <i class="fas fa-users"></i>
-                        </div>
+                    <div class="stat-icon courses">
+                        <i class="fas fa-book"></i>
                     </div>
-                    <div class="stat-number"><?php echo $total_students; ?></div>
-                    <div class="stat-label">Classmates</div>
+                    <div class="stat-number">5</div>
+                    <div class="stat-label">Courses</div>
                 </div>
                 
                 <div class="stat-card">
-                    <div class="stat-header">
-                        <div class="stat-icon total-courses">
-                            <i class="fas fa-graduation-cap"></i>
-                        </div>
+                    <div class="stat-icon passed">
+                        <i class="fas fa-check-circle"></i>
                     </div>
-                    <div class="stat-number"><?php echo $total_courses; ?></div>
-                    <div class="stat-label">Total Courses</div>
+                    <div class="stat-number">5</div>
+                    <div class="stat-label">Passed</div>
                 </div>
                 
                 <div class="stat-card">
-                    <div class="stat-header">
-                        <div class="stat-icon program">
-                            <i class="fas fa-star"></i>
-                        </div>
+                    <div class="stat-icon rank">
+                        <i class="fas fa-trophy"></i>
                     </div>
-                    <div class="stat-number"><?php echo htmlspecialchars($program); ?></div>
-                    <div class="stat-label">Program</div>
+                    <div class="stat-number">#3</div>
+                    <div class="stat-label">Class Rank</div>
                 </div>
             </div>
 
-            <!-- Quick Actions -->
-            <div class="quick-actions">
-                <h2 class="section-title">Quick Actions</h2>
-                <div class="actions-grid">
-                    <a href="student_courses.php" class="action-card">
-                        <div class="action-icon">
-                            <i class="fas fa-book"></i>
-                        </div>
-                        <div class="action-title">View Courses</div>
-                        <div class="action-desc">Access your course materials</div>
-                    </a>
-                    
-                    <a href="student_results.php" class="action-card">
-                        <div class="action-icon">
-                            <i class="fas fa-chart-bar"></i>
-                        </div>
-                        <div class="action-title">My Results</div>
-                        <div class="action-desc">Check your grades</div>
-                    </a>
-                    
-                    <a href="student_assignments.php" class="action-card">
-                        <div class="action-icon">
-                            <i class="fas fa-tasks"></i>
-                        </div>
-                        <div class="action-title">Assignments</div>
-                        <div class="action-desc">Submit and track assignments</div>
-                    </a>
-                    
-                    <a href="student_schedule.php" class="action-card">
-                        <div class="action-icon">
-                            <i class="fas fa-calendar-alt"></i>
-                        </div>
-                        <div class="action-title">Schedule</div>
-                        <div class="action-desc">View your class schedule</div>
-                    </a>
-                    
-                    <a href="student_profile.php" class="action-card">
-                        <div class="action-icon">
-                            <i class="fas fa-user-edit"></i>
-                        </div>
-                        <div class="action-title">Update Profile</div>
-                        <div class="action-desc">Edit your information</div>
-                    </a>
-                    
-                    <a href="student_resources.php" class="action-card">
-                        <div class="action-icon">
-                            <i class="fas fa-download"></i>
-                        </div>
-                        <div class="action-title">Resources</div>
-                        <div class="action-desc">Download study materials</div>
-                    </a>
+            <!-- Results Table -->
+            <div class="results-card">
+                <div class="results-header">
+                    <h2 class="results-title">
+                        <i class="fas fa-chart-line me-2"></i>
+                        Course Results
+                    </h2>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table results-table">
+                        <thead>
+                            <tr>
+                                <th><i class="fas fa-book me-2"></i>Course</th>
+                                <th><i class="fas fa-star me-2"></i>Grade</th>
+                                <th><i class="fas fa-percentage me-2"></i>Score</th>
+                                <th><i class="fas fa-info-circle me-2"></i>Status</th>
+                                <th><i class="fas fa-calendar me-2"></i>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($sample_results as $result): ?>
+                            <tr>
+                                <td>
+                                    <strong><?php echo htmlspecialchars($result['course']); ?></strong>
+                                </td>
+                                <td>
+                                    <span class="grade-badge grade-<?php echo strtolower($result['grade'][0]); ?>">
+                                        <?php echo htmlspecialchars($result['grade']); ?>
+                                    </span>
+                                </td>
+                                <td>
+                                    <strong><?php echo htmlspecialchars($result['score']); ?>%</strong>
+                                </td>
+                                <td>
+                                    <span class="status-badge status-<?php echo strtolower($result['status']); ?>">
+                                        <?php echo htmlspecialchars($result['status']); ?>
+                                    </span>
+                                </td>
+                                <td>
+                                    <small class="text-muted">
+                                        <?php echo date('M j, Y'); ?>
+                                    </small>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -610,4 +606,4 @@ $student = mysqli_fetch_assoc($student_result);
         });
     </script>
 </body>
-</html>
+</html> 

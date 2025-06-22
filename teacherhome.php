@@ -3,7 +3,7 @@ session_start();
 
 // Check if teacher is logged in
 if (!isset($_SESSION['username']) || $_SESSION['usertype'] !== 'teacher') {
-    header("Location: teacher_login.php");
+    header("Location: login.php");
     exit();
 }
 
@@ -21,7 +21,7 @@ if (!$data) {
 
 // Get teacher information
 $teacher_id = $_SESSION['teacher_id'];
-$teacher_sql = "SELECT * FROM teachers WHERE id = ?";
+$teacher_sql = "SELECT * FROM teacher WHERE id = ?";
 $stmt = mysqli_prepare($data, $teacher_sql);
 mysqli_stmt_bind_param($stmt, "i", $teacher_id);
 mysqli_stmt_execute($stmt);
@@ -410,35 +410,28 @@ $total_students = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM s
             </div>
             
             <div class="sidebar-item">
-                <a href="teacher_students.php" class="sidebar-link">
+                <a href="teacher_student_management.php" class="sidebar-link">
                     <i class="fas fa-users sidebar-icon"></i>
                     My Students
                 </a>
             </div>
             
             <div class="sidebar-item">
-                <a href="teacher_assignments.php" class="sidebar-link">
+                <a href="teacher_content_management.php" class="sidebar-link">
                     <i class="fas fa-tasks sidebar-icon"></i>
-                    Assignments
+                    Assignments & Content
                 </a>
             </div>
             
             <div class="sidebar-item">
-                <a href="teacher_grades.php" class="sidebar-link">
+                <a href="teacher_grade_management.php" class="sidebar-link">
                     <i class="fas fa-chart-bar sidebar-icon"></i>
                     Grades
                 </a>
             </div>
             
             <div class="sidebar-item">
-                <a href="teacher_profile.php" class="sidebar-link">
-                    <i class="fas fa-user sidebar-icon"></i>
-                    Profile
-                </a>
-            </div>
-            
-            <div class="sidebar-item">
-                <a href="teacher_schedule.php" class="sidebar-link">
+                <a href="teacher_schedule_management.php" class="sidebar-link">
                     <i class="fas fa-calendar sidebar-icon"></i>
                     Schedule
                 </a>
@@ -537,7 +530,7 @@ $total_students = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM s
                         <div class="action-desc">Manage your course materials</div>
                     </a>
                     
-                    <a href="teacher_students.php" class="action-card">
+                    <a href="teacher_student_management.php" class="action-card">
                         <div class="action-icon">
                             <i class="fas fa-users"></i>
                         </div>
@@ -545,7 +538,7 @@ $total_students = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM s
                         <div class="action-desc">View your students</div>
                     </a>
                     
-                    <a href="teacher_assignments.php" class="action-card">
+                    <a href="teacher_content_management.php" class="action-card">
                         <div class="action-icon">
                             <i class="fas fa-tasks"></i>
                         </div>
@@ -553,7 +546,7 @@ $total_students = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM s
                         <div class="action-desc">Create and grade assignments</div>
                     </a>
                     
-                    <a href="teacher_grades.php" class="action-card">
+                    <a href="teacher_grade_management.php" class="action-card">
                         <div class="action-icon">
                             <i class="fas fa-chart-bar"></i>
                         </div>
@@ -561,15 +554,7 @@ $total_students = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM s
                         <div class="action-desc">Manage student grades</div>
                     </a>
                     
-                    <a href="teacher_profile.php" class="action-card">
-                        <div class="action-icon">
-                            <i class="fas fa-user-edit"></i>
-                        </div>
-                        <div class="action-title">Update Profile</div>
-                        <div class="action-desc">Edit your information</div>
-                    </a>
-                    
-                    <a href="teacher_schedule.php" class="action-card">
+                    <a href="teacher_schedule_management.php" class="action-card">
                         <div class="action-icon">
                             <i class="fas fa-calendar-alt"></i>
                         </div>

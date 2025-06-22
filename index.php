@@ -37,7 +37,7 @@ if (mysqli_num_rows($content_result) > 0) {
     ];
 }
 
-$sql = "SELECT * FROM teachers";
+$sql = "SELECT * FROM teacher";
 $result = mysqli_query($data, $sql);
 ?>
 
@@ -413,23 +413,143 @@ $result = mysqli_query($data, $sql);
 					<li class="nav-item">
 						<a class="nav-link" href="#contact">Contact</a>
 					</li>
-					<li class="nav-item dropdown">
-						<a class="nav-link dropdown-toggle" href="#" id="loginDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+					<li class="nav-item">
+						<a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#loginModal">
 							<i class="fas fa-sign-in-alt me-1"></i>Login
 						</a>
-						<ul class="dropdown-menu" aria-labelledby="loginDropdown">
-							<li><a class="dropdown-item" href="login.php">
-								<i class="fas fa-user-graduate me-2"></i>Student/Admin Login
-							</a></li>
-							<li><a class="dropdown-item" href="teacher_login.php">
-								<i class="fas fa-chalkboard-teacher me-2"></i>Teacher Login
-							</a></li>
-						</ul>
 					</li>
 				</ul>
 			</div>
 		</div>
 	</nav>
+
+	<!-- Login Modal -->
+	<div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="loginModalLabel">
+						<i class="fas fa-graduation-cap me-2"></i>Welcome to Miles Academy
+					</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+					<!-- Login Type Tabs -->
+					<ul class="nav nav-pills nav-fill mb-4" id="loginTabs" role="tablist">
+						<li class="nav-item" role="presentation">
+							<button class="nav-link active" id="student-tab" data-bs-toggle="pill" data-bs-target="#student-login" type="button" role="tab">
+								<i class="fas fa-user-graduate me-2"></i>Student
+							</button>
+						</li>
+						<li class="nav-item" role="presentation">
+							<button class="nav-link" id="teacher-tab" data-bs-toggle="pill" data-bs-target="#teacher-login" type="button" role="tab">
+								<i class="fas fa-chalkboard-teacher me-2"></i>Teacher
+							</button>
+						</li>
+						<li class="nav-item" role="presentation">
+							<button class="nav-link" id="admin-tab" data-bs-toggle="pill" data-bs-target="#admin-login" type="button" role="tab">
+								<i class="fas fa-user-shield me-2"></i>Admin
+							</button>
+						</li>
+					</ul>
+
+					<!-- Tab Content -->
+					<div class="tab-content" id="loginTabContent">
+						<!-- Student Login -->
+						<div class="tab-pane fade show active" id="student-login" role="tabpanel">
+							<form action="login.php" method="POST">
+								<input type="hidden" name="usertype" value="student">
+								<div class="mb-3">
+									<label for="student-username" class="form-label">Username</label>
+									<div class="input-group">
+										<span class="input-group-text"><i class="fas fa-user"></i></span>
+										<input type="text" class="form-control" id="student-username" name="username" required>
+									</div>
+								</div>
+								<div class="mb-3">
+									<label for="student-password" class="form-label">Password</label>
+									<div class="input-group">
+										<span class="input-group-text"><i class="fas fa-lock"></i></span>
+										<input type="password" class="form-control" id="student-password" name="password" required>
+									</div>
+								</div>
+								<div class="mb-3 form-check">
+									<input type="checkbox" class="form-check-input" id="student-remember">
+									<label class="form-check-label" for="student-remember">Remember me</label>
+								</div>
+								<button type="submit" class="btn btn-primary w-100">
+									<i class="fas fa-sign-in-alt me-2"></i>Student Login
+								</button>
+							</form>
+						</div>
+
+						<!-- Teacher Login -->
+						<div class="tab-pane fade" id="teacher-login" role="tabpanel">
+							<form action="login.php" method="POST">
+								<input type="hidden" name="usertype" value="teacher">
+								<div class="mb-3">
+									<label for="teacher-username" class="form-label">Username</label>
+									<div class="input-group">
+										<span class="input-group-text"><i class="fas fa-user"></i></span>
+										<input type="text" class="form-control" id="teacher-username" name="username" required>
+									</div>
+								</div>
+								<div class="mb-3">
+									<label for="teacher-password" class="form-label">Password</label>
+									<div class="input-group">
+										<span class="input-group-text"><i class="fas fa-lock"></i></span>
+										<input type="password" class="form-control" id="teacher-password" name="password" required>
+									</div>
+								</div>
+								<div class="mb-3 form-check">
+									<input type="checkbox" class="form-check-input" id="teacher-remember">
+									<label class="form-check-label" for="teacher-remember">Remember me</label>
+								</div>
+								<button type="submit" class="btn btn-success w-100">
+									<i class="fas fa-chalkboard-teacher me-2"></i>Teacher Login
+								</button>
+							</form>
+						</div>
+
+						<!-- Admin Login -->
+						<div class="tab-pane fade" id="admin-login" role="tabpanel">
+							<form action="login.php" method="POST">
+								<input type="hidden" name="usertype" value="admin">
+								<div class="mb-3">
+									<label for="admin-username" class="form-label">Username</label>
+									<div class="input-group">
+										<span class="input-group-text"><i class="fas fa-user"></i></span>
+										<input type="text" class="form-control" id="admin-username" name="username" required>
+									</div>
+								</div>
+								<div class="mb-3">
+									<label for="admin-password" class="form-label">Password</label>
+									<div class="input-group">
+										<span class="input-group-text"><i class="fas fa-lock"></i></span>
+										<input type="password" class="form-control" id="admin-password" name="password" required>
+									</div>
+								</div>
+								<div class="mb-3 form-check">
+									<input type="checkbox" class="form-check-input" id="admin-remember">
+									<label class="form-check-label" for="admin-remember">Remember me</label>
+								</div>
+								<button type="submit" class="btn btn-danger w-100">
+									<i class="fas fa-user-shield me-2"></i>Admin Login
+								</button>
+							</form>
+						</div>
+					</div>
+
+					<!-- Forgot Password Link -->
+					<div class="text-center mt-3">
+						<a href="forgot_password.php" class="text-decoration-none">
+							<i class="fas fa-key me-1"></i>Forgot Password?
+						</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
 
 	<!-- Hero Section -->
 	<section id="home" class="hero-section">

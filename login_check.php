@@ -26,6 +26,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($usertype === 'admin') {
         $sql = "SELECT * FROM user WHERE username = '$username'";
     }
+    // Teacher login
+    elseif ($usertype === 'teacher') {
+        $sql = "SELECT * FROM teacher WHERE username = '$username'";
+    }
     // Student login
     elseif ($usertype === 'student') {
         $program = mysqli_real_escape_string($conn, $_POST['program'] ?? '');
@@ -56,17 +60,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['usertype'] = $usertype;
 
             if ($usertype === 'admin') {
-                header("Location: adminhome.php");
+                // Check if adminhome.php exists
+                if (file_exists('adminhome.php')) {
+                    header("Location: adminhome.php");
+                } else {
+                    $_SESSION['loginMessage'] = "Admin dashboard not found. Please contact administrator.";
+                    header("Location: login.php");
+                }
+            } elseif ($usertype === 'teacher') {
+                $_SESSION['teacher_id'] = $user['id'];
+                $_SESSION['teacher_email'] = $user['email'] ?? '';
+                $_SESSION['teacher_name'] = $user['name'] ?? $user['full_name'] ?? '';
+                $_SESSION['specialization'] = $user['specialization'] ?? '';
+                
+                // Check if teacherhome.php exists
+                if (file_exists('teacherhome.php')) {
+                    header("Location: teacherhome.php");
+                } else {
+                    $_SESSION['loginMessage'] = "Teacher dashboard not found. Please contact administrator.";
+                    header("Location: login.php");
+                }
             } elseif ($usertype === 'student') {
                 $_SESSION['program'] = $program;
-                header("Location: studenthome.php");
+                $_SESSION['student_id'] = $user['id'];
+                
+                // Check if studenthome.php exists
+                if (file_exists('studenthome.php')) {
+                    header("Location: studenthome.php");
+                } else {
+                    $_SESSION['loginMessage'] = "Student dashboard not found. Please contact administrator.";
+                    header("Location: login.php");
+                }
             }
             exit();
         } else {
             $_SESSION['loginMessage'] = "Invalid password.";
         }
     } else {
-        $_SESSION['loginMessage'] = "Invalid login details.";
+        if ($usertype === 'teacher') {
+            $_SESSION['loginMessage'] = "Teacher not found or account inactive.";
+        } else {
+            $_SESSION['loginMessage'] = "Invalid login details.";
+        }
     }
 
     header("Location: login.php");

@@ -15,11 +15,15 @@ if (!isset($_SESSION['username']) || $_SESSION['usertype'] !== 'admin') {
     exit();
 }
 
+$message = '';
+
 if (isset($_POST['add_course'])) {
     $name = mysqli_real_escape_string($conn, $_POST['course_name']);
     $code = mysqli_real_escape_string($conn, $_POST['course_code']);
     $desc = mysqli_real_escape_string($conn, $_POST['course_description']);
     $program = mysqli_real_escape_string($conn, $_POST['program']);
+    $credits = mysqli_real_escape_string($conn, $_POST['credits']);
+    $duration = mysqli_real_escape_string($conn, $_POST['duration']);
     
     // File Upload
     $filePath = '';
@@ -28,7 +32,7 @@ if (isset($_POST['add_course'])) {
         $fileType = $_FILES['course_file']['type'];
 
         if (!in_array($fileType, $allowedTypes)) {
-            echo "<script>alert('Invalid file type. Only PDF, DOC, and DOCX allowed.');</script>";
+            $message = "Invalid file type. Only PDF, DOC, and DOCX allowed.";
         } else {
             $uploadDir = "uploads/";
             if (!file_exists($uploadDir)) mkdir($uploadDir, 0755, true);
@@ -37,107 +41,302 @@ if (isset($_POST['add_course'])) {
             $filePath = $uploadDir . $fileName;
 
             if (!move_uploaded_file($_FILES["course_file"]["tmp_name"], $filePath)) {
-                echo "<script>alert('Failed to upload file. Please try again.');</script>";
+                $message = "Failed to upload file. Please try again.";
                 $filePath = '';
             }
         }
     }
 
-    $sql = "INSERT INTO courses (course_name, course_code, course_description, document_path, program)
-            VALUES ('$name', '$code', '$desc', '$filePath', '$program')";
+    if (empty($message)) {
+        $sql = "INSERT INTO courses (course_name, course_code, course_description, document_path, program, credits, duration)
+                VALUES ('$name', '$code', '$desc', '$filePath', '$program', '$credits', '$duration')";
 
     if (mysqli_query($conn, $sql)) {
-        echo "<script>alert('Course added successfully');</script>";
+            $message = "Course added successfully!";
+            $_POST = array(); // Clear form
     } else {
-        echo "<script>alert('Error: " . mysqli_error($conn) . "');</script>";
+            $message = "Error: " . mysqli_error($conn);
+        }
     }
 }
+
+// Get current courses count for display
+$courses_count = mysqli_fetch_array(mysqli_query($conn, "SELECT COUNT(*) FROM courses"))[0];
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Add Course</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <!-- Bootstrap 5 CDN -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <style>
-        body {
-            background-color: #f8f9fa;
-        }
-        .container {
-            max-width: 600px;
-            margin-top: 80px;
-        }
-        .card {
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        .form-label {
-            font-weight: 600;
-        }
-    </style>
+    <title>Add Course - Admin Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="admin.css">
 </head>
 <body>
-
-<!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="#">Admin Dashboard</a>
-        <div class="d-flex">
-            <span class="text-white me-3">Welcome, <?= htmlspecialchars($_SESSION['username']) ?></span>
-            <a href="logout.php" class="btn btn-outline-light btn-sm">Logout</a>
+    <!-- Header -->
+    <header class="header">
+        <a href="adminhome.php">
+            <i class="fas fa-graduation-cap me-2"></i>
+            Admin Dashboard
+        </a>
+        <div class="logout">
+            <a href="logout.php">
+                <i class="fas fa-sign-out-alt me-2"></i>
+                Logout
+            </a>
         </div>
-    </div>
-</nav>
+    </header>
 
-<div class="container">
+    <!-- Sidebar -->
+    <aside>
+        <ul>
+            <li>
+                <a href="adminhome.php">
+                    <i class="fas fa-tachometer-alt me-2"></i>
+                    Dashboard
+                </a>
+            </li>
+            <li>
+                <a href="content_management.php">
+                    <i class="fas fa-edit me-2"></i>
+                    Content Management
+                </a>
+            </li>
+            <li>
+                <a href="admission.php">
+                    <i class="fas fa-user-plus me-2"></i>
+                    Admissions
+                </a>
+            </li>
+            <li>
+                <a href="add_student.php">
+                    <i class="fas fa-user-graduate me-2"></i>
+                    Add Student
+                </a>
+            </li>
+            <li>
+                <a href="view_student.php">
+                    <i class="fas fa-users me-2"></i>
+                    View Students
+                </a>
+            </li>
+            <li>
+                <a href="add_teacher_auth.php">
+                    <i class="fas fa-chalkboard-teacher me-2"></i>
+                    Add Teacher
+                </a>
+            </li>
+            <li>
+                <a href="add_courses.php" class="active">
+                    <i class="fas fa-book me-2"></i>
+                    Add Courses
+                </a>
+            </li>
+            <li>
+                <a href="view_courses.php">
+                    <i class="fas fa-list me-2"></i>
+                    View Courses
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="content fade-in">
+        <div class="row">
+            <div class="col-md-8">
     <div class="card">
-        <div class="card-header bg-primary text-white text-center">
-            <h4>Add New Course</h4>
+                    <div class="card-header">
+                        <h5><i class="fas fa-book me-2"></i>Add New Course</h5>
         </div>
         <div class="card-body">
-            <form method="POST" enctype="multipart/form-data">
-                <div class="mb-3">
-                    <label for="course_name" class="form-label">Course Name</label>
-                    <input type="text" class="form-control" name="course_name" id="course_name" required>
-                </div>
-                <div class="mb-3">
-                    <label for="course_code" class="form-label">Course Code</label>
-                    <input type="text" class="form-control" name="course_code" id="course_code" required>
-                </div>
-                <div class="mb-3">
-                    <label for="course_description" class="form-label">Course Description</label>
-                    <textarea class="form-control" name="course_description" id="course_description" rows="3" required></textarea>
-                </div>
-                <div class="mb-3">
-                    <label for="program" class="form-label">Program</label>
-                    <select class="form-control" name="program" id="program" required>
-                        <option value="Computer Science">Computer Science</option>
-                        <option value="Business Administration">Business Administration</option>
-                        <option value="Engineering">Engineering</option>
-                        <option value="Mathematics">Mathematics</option>
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label for="course_file" class="form-label">Attach Document (PDF, DOC, DOCX)</label>
-                    <input class="form-control" type="file" name="course_file" id="course_file" accept=".pdf,.doc,.docx">
-                </div>
-                <button type="submit" name="add_course" class="btn btn-primary w-100">Add Course</button>
-            </form>
+                        <?php if (!empty($message)): ?>
+                            <div class="alert alert-<?php echo strpos($message, 'successfully') !== false ? 'success' : 'danger'; ?>">
+                                <i class="fas fa-<?php echo strpos($message, 'successfully') !== false ? 'check-circle' : 'exclamation-triangle'; ?> me-2"></i>
+                                <?php echo htmlspecialchars($message); ?>
+                            </div>
+                        <?php endif; ?>
 
-            <!-- Back button -->
-            <div class="mt-3 text-center">
-                <a href="adminhome.php" class="btn btn-secondary">Back to Home</a>
+            <form method="POST" enctype="multipart/form-data">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="course_name" class="form-label">
+                                            <i class="fas fa-book me-2"></i>Course Name *
+                                        </label>
+                                        <input type="text" class="form-control" name="course_name" id="course_name" 
+                                               value="<?php echo isset($_POST['course_name']) ? htmlspecialchars($_POST['course_name']) : ''; ?>" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="course_code" class="form-label">
+                                            <i class="fas fa-code me-2"></i>Course Code *
+                                        </label>
+                                        <input type="text" class="form-control" name="course_code" id="course_code" 
+                                               value="<?php echo isset($_POST['course_code']) ? htmlspecialchars($_POST['course_code']) : ''; ?>" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="program" class="form-label">
+                                            <i class="fas fa-graduation-cap me-2"></i>Program *
+                                        </label>
+                                        <select class="form-select" name="program" id="program" required>
+                                            <option value="">-- Select Program --</option>
+                                            <option value="Computer Science" <?php echo (isset($_POST['program']) && $_POST['program'] == 'Computer Science') ? 'selected' : ''; ?>>Computer Science</option>
+                                            <option value="Business Administration" <?php echo (isset($_POST['program']) && $_POST['program'] == 'Business Administration') ? 'selected' : ''; ?>>Business Administration</option>
+                                            <option value="Engineering" <?php echo (isset($_POST['program']) && $_POST['program'] == 'Engineering') ? 'selected' : ''; ?>>Engineering</option>
+                                            <option value="Mathematics" <?php echo (isset($_POST['program']) && $_POST['program'] == 'Mathematics') ? 'selected' : ''; ?>>Mathematics</option>
+                                            <option value="Physics" <?php echo (isset($_POST['program']) && $_POST['program'] == 'Physics') ? 'selected' : ''; ?>>Physics</option>
+                                            <option value="Chemistry" <?php echo (isset($_POST['program']) && $_POST['program'] == 'Chemistry') ? 'selected' : ''; ?>>Chemistry</option>
+                                            <option value="Biology" <?php echo (isset($_POST['program']) && $_POST['program'] == 'Biology') ? 'selected' : ''; ?>>Biology</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="credits" class="form-label">
+                                            <i class="fas fa-star me-2"></i>Credits
+                                        </label>
+                                        <input type="number" class="form-control" name="credits" id="credits" min="1" max="6" 
+                                               value="<?php echo isset($_POST['credits']) ? htmlspecialchars($_POST['credits']) : '3'; ?>">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="duration" class="form-label">
+                                            <i class="fas fa-clock me-2"></i>Duration (weeks)
+                                        </label>
+                                        <input type="number" class="form-control" name="duration" id="duration" min="1" max="52" 
+                                               value="<?php echo isset($_POST['duration']) ? htmlspecialchars($_POST['duration']) : '16'; ?>">
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="course_file" class="form-label">
+                                            <i class="fas fa-file-upload me-2"></i>Course Document
+                                        </label>
+                                        <input class="form-control" type="file" name="course_file" id="course_file" accept=".pdf,.doc,.docx">
+                                        <small class="text-muted">PDF, DOC, DOCX (Max 10MB)</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="course_description" class="form-label">
+                                    <i class="fas fa-align-left me-2"></i>Course Description *
+                                </label>
+                                <textarea class="form-control" name="course_description" id="course_description" rows="4" 
+                                          placeholder="Enter detailed course description, objectives, and learning outcomes..." required><?php echo isset($_POST['course_description']) ? htmlspecialchars($_POST['course_description']) : ''; ?></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <button type="submit" name="add_course" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>Add Course
+                                </button>
+                                <a href="adminhome.php" class="btn btn-secondary ms-2">
+                                    <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-info-circle me-2"></i>Course Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="text-center mb-3">
+                            <i class="fas fa-book" style="font-size: 3rem; color: var(--primary-color);"></i>
+                        </div>
+                        <div class="text-center">
+                            <h6>Total Courses</h6>
+                            <h3 class="text-primary"><?php echo $courses_count; ?></h3>
+                        </div>
+                        <hr>
+                        <div class="small text-muted">
+                            <p><i class="fas fa-info-circle me-2"></i>All fields marked with * are required.</p>
+                            <p><i class="fas fa-file-pdf me-2"></i>Supported file types: PDF, DOC, DOCX</p>
+                            <p><i class="fas fa-shield-alt me-2"></i>Files are securely stored and accessible to students.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5><i class="fas fa-lightbulb me-2"></i>Tips</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="small">
+                            <p><i class="fas fa-check me-2"></i>Use clear, descriptive course names</p>
+                            <p><i class="fas fa-check me-2"></i>Include detailed learning objectives</p>
+                            <p><i class="fas fa-check me-2"></i>Upload relevant course materials</p>
+                            <p><i class="fas fa-check me-2"></i>Set appropriate credit hours</p>
+                </div>
+                </div>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
+    <script>
+        // Add some interactive features
+        document.addEventListener('DOMContentLoaded', function() {
+            // Form validation enhancement
+            const form = document.querySelector('form');
+            const requiredFields = form.querySelectorAll('[required]');
+            
+            requiredFields.forEach(field => {
+                field.addEventListener('blur', function() {
+                    if (this.value.trim() === '') {
+                        this.classList.add('invalid');
+                    } else {
+                        this.classList.remove('invalid');
+                    }
+                });
+            });
+            
+            // File upload preview
+            const fileInput = document.getElementById('course_file');
+            fileInput.addEventListener('change', function() {
+                const file = this.files[0];
+                if (file) {
+                    const fileSize = file.size / 1024 / 1024; // Convert to MB
+                    if (fileSize > 10) {
+                        alert('File size must be less than 10MB');
+                        this.value = '';
+                    }
+                }
+            });
+            
+            // Auto-generate course code based on name
+            const courseNameInput = document.getElementById('course_name');
+            const courseCodeInput = document.getElementById('course_code');
+            
+            courseNameInput.addEventListener('input', function() {
+                if (courseCodeInput.value === '') {
+                    const name = this.value;
+                    const code = name.replace(/[^A-Z]/gi, '').substring(0, 3).toUpperCase() + 
+                               Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+                    courseCodeInput.value = code;
+                }
+            });
+        });
+    </script>
 </body>
 </html>

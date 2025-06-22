@@ -3,14 +3,11 @@ session_start();
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// Redirect unauthorized access
+// Check user session and usertype = 'student'
 if (!isset($_SESSION['username']) || $_SESSION['usertype'] !== 'student') {
     header("Location: login.php");
     exit();
 }
-
-$username = $_SESSION['username'];
-$program = $_SESSION['program'];
 
 // Database connection
 $host = "localhost";
@@ -24,11 +21,8 @@ if (!$data) {
     die("Database connection failed: " . mysqli_connect_error());
 }
 
-// Get student statistics
-$student_id = $_SESSION['student_id'] ?? null;
-$course_count = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM courses WHERE program = '$program'"))[0];
-$total_students = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM students WHERE program = '$program'"))[0];
-$total_courses = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM courses"))[0];
+$username = $_SESSION['username'];
+$program = $_SESSION['program'];
 
 // Get student information
 $student_sql = "SELECT * FROM students WHERE username = ?";
@@ -37,6 +31,54 @@ mysqli_stmt_bind_param($stmt, "s", $username);
 mysqli_stmt_execute($stmt);
 $student_result = mysqli_stmt_get_result($stmt);
 $student = mysqli_fetch_assoc($student_result);
+
+// Sample schedule data (in a real system, this would come from a schedule table)
+$sample_schedule = [
+    [
+        'day' => 'Monday',
+        'courses' => [
+            ['time' => '09:00 - 10:30', 'course' => 'Mathematics', 'teacher' => 'Dr. Sarah Johnson', 'room' => 'Room 201'],
+            ['time' => '11:00 - 12:30', 'course' => 'Physics', 'teacher' => 'Prof. Michael Chen', 'room' => 'Room 305'],
+            ['time' => '14:00 - 15:30', 'course' => 'Computer Science', 'teacher' => 'Dr. James Wilson', 'room' => 'Room 401']
+        ]
+    ],
+    [
+        'day' => 'Tuesday',
+        'courses' => [
+            ['time' => '09:00 - 10:30', 'course' => 'English', 'teacher' => 'Ms. Emily Rodriguez', 'room' => 'Room 102'],
+            ['time' => '11:00 - 12:30', 'course' => 'Chemistry', 'teacher' => 'Prof. Lisa Thompson', 'room' => 'Room 203'],
+            ['time' => '14:00 - 15:30', 'course' => 'Mathematics', 'teacher' => 'Dr. Sarah Johnson', 'room' => 'Room 201']
+        ]
+    ],
+    [
+        'day' => 'Wednesday',
+        'courses' => [
+            ['time' => '09:00 - 10:30', 'course' => 'Physics', 'teacher' => 'Prof. Michael Chen', 'room' => 'Room 305'],
+            ['time' => '11:00 - 12:30', 'course' => 'Computer Science', 'teacher' => 'Dr. James Wilson', 'room' => 'Room 401'],
+            ['time' => '14:00 - 15:30', 'course' => 'English', 'teacher' => 'Ms. Emily Rodriguez', 'room' => 'Room 102']
+        ]
+    ],
+    [
+        'day' => 'Thursday',
+        'courses' => [
+            ['time' => '09:00 - 10:30', 'course' => 'Chemistry', 'teacher' => 'Prof. Lisa Thompson', 'room' => 'Room 203'],
+            ['time' => '11:00 - 12:30', 'course' => 'Mathematics', 'teacher' => 'Dr. Sarah Johnson', 'room' => 'Room 201'],
+            ['time' => '14:00 - 15:30', 'course' => 'Physics', 'teacher' => 'Prof. Michael Chen', 'room' => 'Room 305']
+        ]
+    ],
+    [
+        'day' => 'Friday',
+        'courses' => [
+            ['time' => '09:00 - 10:30', 'course' => 'Computer Science', 'teacher' => 'Dr. James Wilson', 'room' => 'Room 401'],
+            ['time' => '11:00 - 12:30', 'course' => 'English', 'teacher' => 'Ms. Emily Rodriguez', 'room' => 'Room 102'],
+            ['time' => '14:00 - 15:30', 'course' => 'Chemistry', 'teacher' => 'Prof. Lisa Thompson', 'room' => 'Room 203']
+        ]
+    ]
+];
+
+// Get current week info
+$current_week = date('W');
+$current_year = date('Y');
 ?>
 
 <!DOCTYPE html>
@@ -44,7 +86,7 @@ $student = mysqli_fetch_assoc($student_result);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Student Dashboard - Miles e-School Academy</title>
+    <title>My Schedule - Student Dashboard</title>
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -74,7 +116,7 @@ $student = mysqli_fetch_assoc($student_result);
             background: var(--light-color);
             overflow-x: hidden;
         }
-
+        
         /* Sidebar Styles */
         .sidebar {
             position: fixed;
@@ -94,7 +136,7 @@ $student = mysqli_fetch_assoc($student_result);
             border-bottom: 1px solid rgba(255,255,255,0.1);
             text-align: center;
         }
-
+        
         .sidebar-brand {
             font-size: 1.5rem;
             font-weight: 700;
@@ -207,12 +249,12 @@ $student = mysqli_fetch_assoc($student_result);
             transform: translateY(-2px);
         }
         
-        /* Dashboard Content */
-        .dashboard-content {
+        /* Schedule Content */
+        .schedule-content {
             padding: 2rem;
         }
         
-        .welcome-section {
+        .page-header {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
             padding: 2rem;
@@ -220,132 +262,124 @@ $student = mysqli_fetch_assoc($student_result);
             margin-bottom: 2rem;
         }
         
-        .welcome-title {
+        .page-title {
             font-size: 2rem;
             font-weight: 700;
             margin-bottom: 0.5rem;
         }
         
-        .welcome-subtitle {
+        .page-subtitle {
             opacity: 0.9;
             font-size: 1.1rem;
         }
         
-        /* Stats Cards */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        
-        .stat-card {
+        /* Week Navigation */
+        .week-nav {
             background: white;
             padding: 1.5rem;
             border-radius: 15px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             border: 1px solid var(--border-color);
+            margin-bottom: 2rem;
+        }
+        
+        .week-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .current-week {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+        
+        .week-actions {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        /* Schedule Grid */
+        .schedule-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .day-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
             transition: all 0.3s ease;
         }
         
-        .stat-card:hover {
+        .day-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 8px 25px rgba(0,0,0,0.15);
         }
         
-        .stat-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 1rem;
-        }
-        
-        .stat-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
+        .day-header {
+            background: var(--primary-color);
             color: white;
+            padding: 1rem 1.5rem;
+            text-align: center;
         }
         
-        .stat-icon.courses { background: var(--success-color); }
-        .stat-icon.students { background: var(--info-color); }
-        .stat-icon.total-courses { background: var(--warning-color); }
-        .stat-icon.program { background: var(--danger-color); }
+        .day-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 0;
+        }
         
-        .stat-number {
-            font-size: 2rem;
-            font-weight: 700;
+        .day-body {
+            padding: 1.5rem;
+        }
+        
+        .class-item {
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 0;
+        }
+        
+        .class-item:last-child {
+            border-bottom: none;
+        }
+        
+        .class-time {
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .class-name {
+            font-size: 1.1rem;
+            font-weight: 600;
             color: var(--dark-color);
             margin-bottom: 0.25rem;
         }
         
-        .stat-label {
+        .class-teacher {
             color: #6b7280;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .class-room {
+            color: var(--info-color);
+            font-size: 0.9rem;
             font-weight: 500;
         }
         
-        /* Quick Actions */
-        .quick-actions {
-            background: white;
-            padding: 2rem;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            border: 1px solid var(--border-color);
+        /* Today Highlight */
+        .day-card.today {
+            border: 2px solid var(--success-color);
         }
         
-        .section-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: var(--dark-color);
-            margin-bottom: 1.5rem;
-        }
-        
-        .actions-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-        }
-        
-        .action-card {
-            background: var(--light-color);
-            padding: 1.5rem;
-            border-radius: 12px;
-            text-align: center;
-            text-decoration: none;
-            color: var(--dark-color);
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
-        }
-        
-        .action-card:hover {
-            background: var(--primary-color);
-            color: white;
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
-        }
-        
-        .action-icon {
-            font-size: 2rem;
-            margin-bottom: 1rem;
-            color: var(--primary-color);
-        }
-        
-        .action-card:hover .action-icon {
-            color: white;
-        }
-        
-        .action-title {
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-        
-        .action-desc {
-            font-size: 0.9rem;
-            opacity: 0.8;
+        .day-card.today .day-header {
+            background: var(--success-color);
         }
         
         /* Responsive */
@@ -362,12 +396,14 @@ $student = mysqli_fetch_assoc($student_result);
                 margin-left: 0;
             }
             
-            .stats-grid {
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            .schedule-grid {
+                grid-template-columns: 1fr;
             }
             
-            .actions-grid {
-                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            .week-info {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
             }
         }
         
@@ -400,7 +436,7 @@ $student = mysqli_fetch_assoc($student_result);
         
         <div class="sidebar-menu">
             <div class="sidebar-item">
-                <a href="studenthome.php" class="sidebar-link active">
+                <a href="studenthome.php" class="sidebar-link">
                     <i class="fas fa-tachometer-alt sidebar-icon"></i>
                     Dashboard
                 </a>
@@ -428,12 +464,12 @@ $student = mysqli_fetch_assoc($student_result);
             </div>
             
             <div class="sidebar-item">
-                <a href="student_schedule.php" class="sidebar-link">
+                <a href="student_schedule.php" class="sidebar-link active">
                     <i class="fas fa-calendar sidebar-icon"></i>
                     Schedule
                 </a>
-</div>
-
+            </div>
+            
             <div class="sidebar-item">
                 <a href="student_profile.php" class="sidebar-link">
                     <i class="fas fa-user sidebar-icon"></i>
@@ -443,7 +479,7 @@ $student = mysqli_fetch_assoc($student_result);
         </div>
     </div>
 
-<!-- Main Content -->
+    <!-- Main Content -->
     <div class="main-content">
         <!-- Header -->
         <div class="top-header">
@@ -451,7 +487,7 @@ $student = mysqli_fetch_assoc($student_result);
                 <button class="sidebar-toggle me-3" id="sidebarToggle">
                     <i class="fas fa-bars"></i>
                 </button>
-                <h1 class="header-title mb-0">Dashboard</h1>
+                <h1 class="header-title mb-0">My Schedule</h1>
             </div>
             
             <div class="header-actions">
@@ -471,109 +507,82 @@ $student = mysqli_fetch_assoc($student_result);
             </div>
         </div>
 
-        <!-- Dashboard Content -->
-        <div class="dashboard-content">
-            <!-- Welcome Section -->
-            <div class="welcome-section">
-                <h1 class="welcome-title">Welcome back, <?php echo htmlspecialchars($username); ?>!</h1>
-                <p class="welcome-subtitle">Here's your learning dashboard overview for today.</p>
+        <!-- Schedule Content -->
+        <div class="schedule-content">
+            <!-- Page Header -->
+            <div class="page-header">
+                <h1 class="page-title">Class Schedule</h1>
+                <p class="page-subtitle">Your weekly class timetable and schedule</p>
             </div>
 
-            <!-- Statistics -->
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-header">
-                        <div class="stat-icon courses">
-                            <i class="fas fa-book"></i>
-                        </div>
+            <!-- Week Navigation -->
+            <div class="week-nav">
+                <div class="week-info">
+                    <div class="current-week">
+                        <i class="fas fa-calendar-week me-2"></i>
+                        Week <?php echo $current_week; ?>, <?php echo $current_year; ?>
                     </div>
-                    <div class="stat-number"><?php echo $course_count; ?></div>
-                    <div class="stat-label">My Courses</div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-header">
-                        <div class="stat-icon students">
-                            <i class="fas fa-users"></i>
-                        </div>
+                    <div class="week-actions">
+                        <button class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-chevron-left me-1"></i>Previous Week
+                        </button>
+                        <button class="btn btn-outline-primary btn-sm">
+                            Next Week<i class="fas fa-chevron-right ms-1"></i>
+                        </button>
+                        <button class="btn btn-primary btn-sm">
+                            <i class="fas fa-download me-1"></i>Download PDF
+                        </button>
                     </div>
-                    <div class="stat-number"><?php echo $total_students; ?></div>
-                    <div class="stat-label">Classmates</div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-header">
-                        <div class="stat-icon total-courses">
-                            <i class="fas fa-graduation-cap"></i>
-                        </div>
-                    </div>
-                    <div class="stat-number"><?php echo $total_courses; ?></div>
-                    <div class="stat-label">Total Courses</div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-header">
-                        <div class="stat-icon program">
-                            <i class="fas fa-star"></i>
-                        </div>
-                    </div>
-                    <div class="stat-number"><?php echo htmlspecialchars($program); ?></div>
-                    <div class="stat-label">Program</div>
                 </div>
             </div>
 
-            <!-- Quick Actions -->
-            <div class="quick-actions">
-                <h2 class="section-title">Quick Actions</h2>
-                <div class="actions-grid">
-                    <a href="student_courses.php" class="action-card">
-                        <div class="action-icon">
-                            <i class="fas fa-book"></i>
-                        </div>
-                        <div class="action-title">View Courses</div>
-                        <div class="action-desc">Access your course materials</div>
-                    </a>
+            <!-- Schedule Grid -->
+            <div class="schedule-grid">
+                <?php 
+                $today = date('l'); // Get current day name
+                foreach ($sample_schedule as $day): 
+                    $isToday = ($day['day'] === $today);
+                ?>
+                <div class="day-card <?php echo $isToday ? 'today' : ''; ?>">
+                    <div class="day-header">
+                        <h3 class="day-title">
+                            <?php if ($isToday): ?>
+                                <i class="fas fa-star me-2"></i>
+                            <?php endif; ?>
+                            <?php echo htmlspecialchars($day['day']); ?>
+                        </h3>
+                    </div>
                     
-                    <a href="student_results.php" class="action-card">
-                        <div class="action-icon">
-                            <i class="fas fa-chart-bar"></i>
-                        </div>
-                        <div class="action-title">My Results</div>
-                        <div class="action-desc">Check your grades</div>
-                    </a>
-                    
-                    <a href="student_assignments.php" class="action-card">
-                        <div class="action-icon">
-                            <i class="fas fa-tasks"></i>
-                        </div>
-                        <div class="action-title">Assignments</div>
-                        <div class="action-desc">Submit and track assignments</div>
-                    </a>
-                    
-                    <a href="student_schedule.php" class="action-card">
-                        <div class="action-icon">
-                            <i class="fas fa-calendar-alt"></i>
-                        </div>
-                        <div class="action-title">Schedule</div>
-                        <div class="action-desc">View your class schedule</div>
-                    </a>
-                    
-                    <a href="student_profile.php" class="action-card">
-                        <div class="action-icon">
-                            <i class="fas fa-user-edit"></i>
-                        </div>
-                        <div class="action-title">Update Profile</div>
-                        <div class="action-desc">Edit your information</div>
-                    </a>
-                    
-                    <a href="student_resources.php" class="action-card">
-                        <div class="action-icon">
-                            <i class="fas fa-download"></i>
-                        </div>
-                        <div class="action-title">Resources</div>
-                        <div class="action-desc">Download study materials</div>
-                    </a>
+                    <div class="day-body">
+                        <?php if (empty($day['courses'])): ?>
+                            <div class="text-center text-muted py-3">
+                                <i class="fas fa-calendar-times fa-2x mb-2"></i>
+                                <p>No classes scheduled</p>
+                            </div>
+                        <?php else: ?>
+                            <?php foreach ($day['courses'] as $course): ?>
+                            <div class="class-item">
+                                <div class="class-time">
+                                    <i class="fas fa-clock me-1"></i>
+                                    <?php echo htmlspecialchars($course['time']); ?>
+                                </div>
+                                <div class="class-name">
+                                    <?php echo htmlspecialchars($course['course']); ?>
+                                </div>
+                                <div class="class-teacher">
+                                    <i class="fas fa-chalkboard-teacher me-1"></i>
+                                    <?php echo htmlspecialchars($course['teacher']); ?>
+                                </div>
+                                <div class="class-room">
+                                    <i class="fas fa-map-marker-alt me-1"></i>
+                                    <?php echo htmlspecialchars($course['room']); ?>
+                                </div>
+                            </div>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </div>
                 </div>
+                <?php endforeach; ?>
             </div>
         </div>
     </div>
@@ -610,4 +619,4 @@ $student = mysqli_fetch_assoc($student_result);
         });
     </script>
 </body>
-</html>
+</html> 
