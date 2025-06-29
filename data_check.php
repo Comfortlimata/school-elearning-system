@@ -21,12 +21,13 @@ if (isset($_POST['apply'])) {
     $name = mysqli_real_escape_string($data, $_POST['name']);
     $email = mysqli_real_escape_string($data, $_POST['email']);
     $phone = mysqli_real_escape_string($data, $_POST['phone']);
-    $program = mysqli_real_escape_string($data, $_POST['program']);
+    $grade = mysqli_real_escape_string($data, $_POST['grade']);
+    $section = mysqli_real_escape_string($data, $_POST['section']);
     $message = mysqli_real_escape_string($data, $_POST['message']);
 
     // Insert data into the database with status and created_at
-    $sql = "INSERT INTO admission (name, email, phone, program, message, status, created_at) 
-            VALUES ('$name', '$email', '$phone', '$program', '$message', 'Pending', NOW())";
+    $sql = "INSERT INTO admission (name, email, phone, grade, section, message, status, created_at) 
+            VALUES ('$name', '$email', '$phone', '$grade', '$section', '$message', 'Pending', NOW())";
     $result = mysqli_query($data, $sql);
 
     if ($result) {
@@ -65,7 +66,8 @@ if (!$result) {
                 <th style="padding: 10px; font-size: 10px;">Name</th>
                 <th style="padding: 10px; font-size: 10px;">Email</th>
                 <th style="padding: 10px; font-size: 10px;">Phone</th>
-                <th style="padding: 10px; font-size: 10px;">Program</th>
+                <th style="padding: 10px; font-size: 10px;">Grade</th>
+                <th style="padding: 10px; font-size: 10px;">Section</th>
                 <th style="padding: 10px; font-size: 10px;">Message</th>
                 <th style="padding: 10px; font-size: 10px;">Status</th>
                 <th style="padding: 10px; font-size: 10px;">Date Applied</th>
@@ -78,7 +80,8 @@ if (!$result) {
                     <td style='padding: 8px;'><?php echo htmlspecialchars($info['name']); ?></td>
                     <td style='padding: 8px;'><?php echo htmlspecialchars($info['email']); ?></td>
                     <td style='padding: 8px;'><?php echo htmlspecialchars($info['phone']); ?></td>
-                    <td style='padding: 8px;'><?php echo htmlspecialchars($info['program']); ?></td>
+                    <td style='padding: 8px;'><?php echo htmlspecialchars($info['grade']); ?></td>
+                    <td style='padding: 8px;'><?php echo htmlspecialchars($info['section']); ?></td>
                     <td style='padding: 8px;'><?php echo nl2br(htmlspecialchars($info['message'])); ?></td>
                     <td style='padding: 8px;'>
                         <?php 

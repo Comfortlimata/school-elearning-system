@@ -18,6 +18,9 @@ if (!$conn) {
     die("Database connection failed: " . mysqli_connect_error());
 }
 
+$grades_result = mysqli_query($conn, "SELECT id, name FROM grades ORDER BY id");
+$subjects_result = mysqli_query($conn, "SELECT id, name FROM subjects ORDER BY name");
+
 $message = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -25,12 +28,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = mysqli_real_escape_string($conn, $_POST['username']);
     $email = mysqli_real_escape_string($conn, $_POST['email']);
     $password = mysqli_real_escape_string($conn, $_POST['password']);
-    $program = mysqli_real_escape_string($conn, $_POST['program']);
+    $grade_id = isset($_POST['grade_id']) ? (int)$_POST['grade_id'] : 0;
     $full_name = mysqli_real_escape_string($conn, $_POST['full_name']);
     $phone = mysqli_real_escape_string($conn, $_POST['phone']);
     $address = mysqli_real_escape_string($conn, $_POST['address']);
-    $date_of_birth = mysqli_real_escape_string($conn, $_POST['date_of_birth']);
+    $date_of_birth = !empty($_POST['date_of_birth']) ? mysqli_real_escape_string($conn, $_POST['date_of_birth']) : NULL;
     $gender = mysqli_real_escape_string($conn, $_POST['gender']);
+    $section = isset($_POST['section']) ? mysqli_real_escape_string($conn, $_POST['section']) : '';
 
     // Hash the password
     $hashed_password = password_hash($password, PASSWORD_DEFAULT);
@@ -38,13 +42,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Check if username or email already exists
     $check_sql = "SELECT id FROM students WHERE username = '$username' OR email = '$email'";
     $check_result = mysqli_query($conn, $check_sql);
-    
+
     if (mysqli_num_rows($check_result) > 0) {
         $message = "Username or email already exists!";
+    } elseif (!$grade_id) {
+        $message = "Please select a grade. (Debug: grade_id is $grade_id)";
     } else {
     // Insert data into the database
-        $sql = "INSERT INTO students (username, email, password, program, full_name, phone, address, date_of_birth, gender) 
-                VALUES ('$username', '$email', '$hashed_password', '$program', '$full_name', '$phone', '$address', '$date_of_birth', '$gender')";
+        $sql = "INSERT INTO students (username, email, password, grade_id, full_name, phone, address, date_of_birth, gender, section) 
+                VALUES ('$username', '$email', '$hashed_password', $grade_id, '$full_name', '$phone', '$address', ".($date_of_birth ? "'$date_of_birth'" : "NULL").", '$gender', '$section')";
     $result = mysqli_query($conn, $sql);
 
     if ($result) {
@@ -55,6 +61,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
+
+// Always fetch grades for the dropdown after form processing
+$grades_result = mysqli_query($conn, "SELECT id, name FROM grades ORDER BY id");
 
 // Get current students count for display
 $students_count = mysqli_fetch_array(mysqli_query($conn, "SELECT COUNT(*) FROM students"))[0];
@@ -212,18 +221,32 @@ $students_count = mysqli_fetch_array(mysqli_query($conn, "SELECT COUNT(*) FROM s
                                 
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="program" class="form-label">
-                                            <i class="fas fa-graduation-cap me-2"></i>Select Program *
+                                        <label for="grade_id" class="form-label">
+                                            <i class="fas fa-graduation-cap me-2"></i>Select Grade *
                                         </label>
-                                        <select name="program" id="program" class="form-select" required>
-                <option value="">-- Select Program --</option>
-                                            <option value="Computer Science" <?php echo (isset($_POST['program']) && $_POST['program'] == 'Computer Science') ? 'selected' : ''; ?>>Computer Science</option>
-                                            <option value="Engineering" <?php echo (isset($_POST['program']) && $_POST['program'] == 'Engineering') ? 'selected' : ''; ?>>Engineering</option>
-                                            <option value="Mathematics" <?php echo (isset($_POST['program']) && $_POST['program'] == 'Mathematics') ? 'selected' : ''; ?>>Mathematics</option>
-                                            <option value="Business Administration" <?php echo (isset($_POST['program']) && $_POST['program'] == 'Business Administration') ? 'selected' : ''; ?>>Business Administration</option>
-                                            <option value="Physics" <?php echo (isset($_POST['program']) && $_POST['program'] == 'Physics') ? 'selected' : ''; ?>>Physics</option>
-                                            <option value="Chemistry" <?php echo (isset($_POST['program']) && $_POST['program'] == 'Chemistry') ? 'selected' : ''; ?>>Chemistry</option>
-                                            <option value="Biology" <?php echo (isset($_POST['program']) && $_POST['program'] == 'Biology') ? 'selected' : ''; ?>>Biology</option>
+                                        <select name="grade_id" id="grade_id" class="form-select" required>
+                                            <option value="">-- Select Grade --</option>
+                                            <?php while ($grade = mysqli_fetch_assoc($grades_result)): ?>
+                                                <option value="<?php echo $grade['id']; ?>" <?php echo (isset($_POST['grade_id']) && $_POST['grade_id'] == $grade['id']) ? 'selected' : ''; ?>>
+                                                    <?php echo htmlspecialchars($grade['name']); ?>
+                                                </option>
+                                            <?php endwhile; ?>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="section" class="form-label">
+                                            <i class="fas fa-layer-group me-2"></i>Section *
+                                        </label>
+                                        <select name="section" id="section" class="form-select" required>
+                                            <option value="">-- Select Section --</option>
+                                            <option value="A" <?php echo (isset($_POST['section']) && $_POST['section'] == 'A') ? 'selected' : ''; ?>>A</option>
+                                            <option value="B" <?php echo (isset($_POST['section']) && $_POST['section'] == 'B') ? 'selected' : ''; ?>>B</option>
+                                            <option value="C" <?php echo (isset($_POST['section']) && $_POST['section'] == 'C') ? 'selected' : ''; ?>>C</option>
                                         </select>
                                     </div>
                                 </div>
@@ -235,8 +258,7 @@ $students_count = mysqli_fetch_array(mysqli_query($conn, "SELECT COUNT(*) FROM s
                                         <label for="date_of_birth" class="form-label">
                                             <i class="fas fa-calendar me-2"></i>Date of Birth
                                         </label>
-                                        <input type="date" name="date_of_birth" id="date_of_birth" class="form-control" 
-                                               value="<?php echo isset($_POST['date_of_birth']) ? htmlspecialchars($_POST['date_of_birth']) : ''; ?>">
+                                        <input type="date" name="date_of_birth" id="date_of_birth" class="form-control">
                                     </div>
                                 </div>
                                 

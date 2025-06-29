@@ -32,15 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     // Student login
     elseif ($usertype === 'student') {
-        $program = mysqli_real_escape_string($conn, $_POST['program'] ?? '');
-
-        if (empty($program)) {
-            $_SESSION['loginMessage'] = "Please select a program.";
-            header("Location: login.php");
-            exit();
-        }
-
-        $sql = "SELECT * FROM students WHERE username = '$username' AND program = '$program'";
+        $sql = "SELECT * FROM students WHERE username = '$username'";
     }
     // Invalid type
     else {
@@ -81,9 +73,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     header("Location: login.php");
                 }
             } elseif ($usertype === 'student') {
-                $_SESSION['program'] = $program;
                 $_SESSION['student_id'] = $user['id'];
-                
+                $_SESSION['grade_id'] = $user['grade_id'];
+                $_SESSION['section'] = $user['section'] ?? '';
+                // Optionally, fetch grade name for display
+                $grade_name = '';
+                $grade_res = mysqli_query($conn, "SELECT name FROM grades WHERE id = " . intval($user['grade_id']));
+                if ($grade_res && mysqli_num_rows($grade_res) > 0) {
+                    $grade_row = mysqli_fetch_assoc($grade_res);
+                    $grade_name = $grade_row['name'];
+                }
+                $_SESSION['grade_name'] = $grade_name;
                 // Check if studenthome.php exists
                 if (file_exists('studenthome.php')) {
                     header("Location: studenthome.php");

@@ -878,21 +878,33 @@ $result = mysqli_query($data, $sql);
 										<input type="tel" name="phone" id="phone" class="form-control" required>
                         </div>
 									<div class="col-md-6 mb-3">
-										<label for="program" class="form-label">Select Program *</label>
-                            <select name="program" id="program" class="form-control" required>
-                                <option value="">-- Select Program --</option>
-											<option value="IGCSE Mathematics">IGCSE Mathematics</option>
-											<option value="AS Mathematics">AS Mathematics</option>
-											<option value="A Level Mathematics">A Level Mathematics</option>
-                                <option value="Computer Science">Computer Science</option>
-                                <option value="Engineering">Engineering</option>
-                                <option value="Business Administration">Business Administration</option>
+										<label for="grade" class="form-label">Select Grade *</label>
+                            <select name="grade" id="grade" class="form-control" required>
+                                <option value="">-- Select Grade --</option>
+											<option value="Grade 8">Grade 8</option>
+											<option value="Grade 9">Grade 9</option>
+											<option value="Grade 10">Grade 10</option>
+											<option value="Grade 11">Grade 11</option>
+											<option value="Grade 12">Grade 12</option>
+											<option value="GCE">GCE</option>
                             </select>
 									</div>
                         </div>
-                        <div class="mb-3">
-									<label for="message" class="form-label">Why Should We Accept You? *</label>
-									<textarea name="message" id="message" class="form-control" rows="4" placeholder="Tell us about your academic goals, achievements, and why you want to join our academy..." required></textarea>
+                        <div class="row">
+									<div class="col-md-6 mb-3">
+										<label for="section" class="form-label">Select Section *</label>
+                            <select name="section" id="section" class="form-control" required>
+                                <option value="">-- Select Section --</option>
+											<option value="A">Section A</option>
+											<option value="B">Section B</option>
+											<option value="C">Section C</option>
+											<option value="D">Section D</option>
+                            </select>
+                        </div>
+									<div class="col-md-6 mb-3">
+										<label for="message" class="form-label">Why Should We Accept You? *</label>
+										<textarea name="message" id="message" class="form-control" rows="4" placeholder="Tell us about your academic goals, achievements, and why you want to join our academy..." required></textarea>
+                        </div>
                         </div>
                         <div class="text-center">
 									<button type="submit" name="apply" class="btn btn-primary btn-lg">

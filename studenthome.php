@@ -10,7 +10,8 @@ if (!isset($_SESSION['username']) || $_SESSION['usertype'] !== 'student') {
 }
 
 $username = $_SESSION['username'];
-$program = $_SESSION['program'];
+$grade_id = $_SESSION['grade_id'] ?? null;
+$grade_name = $_SESSION['grade_name'] ?? '';
 
 // Database connection
 $host = "localhost";
@@ -26,8 +27,14 @@ if (!$data) {
 
 // Get student statistics
 $student_id = $_SESSION['student_id'] ?? null;
-$course_count = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM courses WHERE program = '$program'"))[0];
-$total_students = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM students WHERE program = '$program'"))[0];
+$course_count = 0;
+if (!empty($grade_id)) {
+    $course_count = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM courses WHERE grade_id = $grade_id"))[0];
+}
+$total_students = 0;
+if (!empty($grade_id)) {
+    $total_students = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM students WHERE grade_id = $grade_id"))[0];
+}
 $total_courses = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM courses"))[0];
 
 // Get student information
@@ -426,13 +433,13 @@ $student = mysqli_fetch_assoc($student_result);
                     Assignments
                 </a>
             </div>
-            
+
             <div class="sidebar-item">
                 <a href="student_schedule.php" class="sidebar-link">
                     <i class="fas fa-calendar sidebar-icon"></i>
                     Schedule
                 </a>
-</div>
+            </div>
 
             <div class="sidebar-item">
                 <a href="student_profile.php" class="sidebar-link">
@@ -461,7 +468,7 @@ $student = mysqli_fetch_assoc($student_result);
                     </div>
                     <div>
                         <div class="fw-bold"><?php echo htmlspecialchars($username); ?></div>
-                        <small class="text-muted"><?php echo htmlspecialchars($program); ?> Student</small>
+                        <small class="text-muted"><?php echo htmlspecialchars($grade_name); ?> Student</small>
                     </div>
                 </div>
                 
@@ -517,7 +524,7 @@ $student = mysqli_fetch_assoc($student_result);
                             <i class="fas fa-star"></i>
                         </div>
                     </div>
-                    <div class="stat-number"><?php echo htmlspecialchars($program); ?></div>
+                    <div class="stat-number"><?php echo htmlspecialchars($grade_name); ?></div>
                     <div class="stat-label">Program</div>
                 </div>
             </div>

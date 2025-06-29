@@ -246,6 +246,12 @@ $admission_count = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM 
                     View Courses
                 </a>
             </li>
+            <li>
+                <a href="admin_grade_subject_management.php">
+                    <i class="fas fa-link me-2"></i>
+                    Grade-Subject Management
+                </a>
+            </li>
         </ul>
     </aside>
 
@@ -351,6 +357,14 @@ $admission_count = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM 
                     <div class="action-title">Admissions</div>
                     <div class="action-desc">Review applications</div>
                 </a>
+                
+                <a href="admin_grade_subject_management.php" class="action-card">
+                    <div class="action-icon">
+                        <i class="fas fa-link"></i>
+                    </div>
+                    <div class="action-title">Grade-Subject Management</div>
+                    <div class="action-desc">Manage subject assignments</div>
+                </a>
             </div>
         </div>
     </div>
@@ -371,7 +385,7 @@ $admission_count = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM 
                         currentValue = finalValue;
                         clearInterval(timer);
                     }
-                    stat.textContent = Math.floor(currentValue);
+                    stat.textContent = Math.floomake ther(currentValue);
                 }, 20);
             });
             

@@ -46,16 +46,44 @@ mysqli_stmt_execute($stmt);
 $teacher_result = mysqli_stmt_get_result($stmt);
 $teacher = mysqli_fetch_assoc($teacher_result);
 
-// Get students enrolled in teacher's assigned courses
-$students_sql = "SELECT DISTINCT s.* FROM students s 
-                 INNER JOIN courses c ON s.program = c.program 
-                 WHERE c.teacher_id = ?";
+// Get teacher's assigned subjects from teacher_grade_subjects table
+$teacher_subjects_sql = "SELECT DISTINCT tgs.*, g.name as grade_name, s.name as subject_name, s.id as subject_id 
+                        FROM teacher_grade_subjects tgs 
+                        JOIN grades g ON tgs.grade_id = g.id 
+                        JOIN subjects s ON tgs.subject_id = s.id 
+                        WHERE tgs.teacher_id = ? 
+                        ORDER BY g.name, s.name";
+$stmt = mysqli_prepare($data, $teacher_subjects_sql);
+mysqli_stmt_bind_param($stmt, "i", $teacher_id);
+mysqli_stmt_execute($stmt);
+$teacher_subjects_result = mysqli_stmt_get_result($stmt);
+
+// Get grade-section-subject assignments for the teacher's subjects
+$teacher_assignments_sql = "SELECT gsa.*, g.name as grade_name, s.name as subject_name 
+                           FROM grade_subject_assignments gsa 
+                           JOIN grades g ON gsa.grade_id = g.id 
+                           JOIN subjects s ON gsa.subject_id = s.id 
+                           JOIN teacher_grade_subjects tgs ON gsa.grade_id = tgs.grade_id AND gsa.subject_id = tgs.subject_id 
+                           WHERE tgs.teacher_id = ? 
+                           ORDER BY g.name, gsa.section, s.name";
+$stmt = mysqli_prepare($data, $teacher_assignments_sql);
+mysqli_stmt_bind_param($stmt, "i", $teacher_id);
+mysqli_stmt_execute($stmt);
+$teacher_assignments_result = mysqli_stmt_get_result($stmt);
+
+// Get students enrolled in teacher's assigned grades
+$students_sql = "SELECT DISTINCT s.*, g.name as grade_name 
+                 FROM students s 
+                 JOIN grades g ON s.grade_id = g.id 
+                 JOIN teacher_grade_subjects tgs ON s.grade_id = tgs.grade_id 
+                 WHERE tgs.teacher_id = ? 
+                 ORDER BY g.name, s.section, s.full_name";
 $stmt = mysqli_prepare($data, $students_sql);
 mysqli_stmt_bind_param($stmt, "i", $teacher_id);
 mysqli_stmt_execute($stmt);
 $students_result = mysqli_stmt_get_result($stmt);
 
-// Get teacher's assigned courses
+// Get teacher's assigned courses from courses table (for backward compatibility)
 $teacher_courses_sql = "SELECT * FROM courses WHERE teacher_id = ?";
 $stmt = mysqli_prepare($data, $teacher_courses_sql);
 mysqli_stmt_bind_param($stmt, "i", $teacher_id);
@@ -81,7 +109,7 @@ $messages_result = mysqli_stmt_get_result($stmt);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>My Courses - Teacher Dashboard</title>
+    <title>My Subjects - Teacher Dashboard</title>
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -308,9 +336,10 @@ $messages_result = mysqli_stmt_get_result($stmt);
             color: white;
         }
         
-        .stat-icon.courses { background: var(--primary-color); }
+        .stat-icon.subjects { background: var(--primary-color); }
         .stat-icon.students { background: var(--success-color); }
         .stat-icon.messages { background: var(--warning-color); }
+        .stat-icon.assignments { background: var(--info-color); }
         
         .stat-number {
             font-size: 2rem;
@@ -324,7 +353,7 @@ $messages_result = mysqli_stmt_get_result($stmt);
             font-size: 0.9rem;
         }
         
-        .course-card {
+        .subject-card {
             background: white;
             border-radius: 15px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
@@ -334,40 +363,40 @@ $messages_result = mysqli_stmt_get_result($stmt);
             height: 100%;
         }
         
-        .course-card:hover {
+        .subject-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 8px 25px rgba(0,0,0,0.15);
         }
         
-        .course-header {
+        .subject-header {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
             padding: 1.5rem;
         }
         
-        .course-body {
+        .subject-body {
             padding: 1.5rem;
         }
         
-        .course-title {
+        .subject-title {
             font-size: 1.25rem;
             font-weight: 600;
             margin-bottom: 0.5rem;
         }
         
-        .course-code {
+        .subject-grade {
             font-size: 0.9rem;
             opacity: 0.8;
             margin-bottom: 1rem;
         }
         
-        .course-description {
+        .subject-description {
             color: #6b7280;
             margin-bottom: 1rem;
             line-height: 1.6;
         }
         
-        .course-actions {
+        .subject-actions {
             display: flex;
             gap: 0.5rem;
             flex-wrap: wrap;
@@ -377,6 +406,41 @@ $messages_result = mysqli_stmt_get_result($stmt);
             padding: 0.5rem 1rem;
             font-size: 0.875rem;
             border-radius: 8px;
+        }
+        
+        .assignment-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+        
+        .assignment-card:hover {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .assignment-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .assignment-title {
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+        
+        .assignment-badges {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
         }
         
         .communication-section {
@@ -518,7 +582,7 @@ $messages_result = mysqli_stmt_get_result($stmt);
             <div class="sidebar-item">
                 <a href="teacher_courses.php" class="sidebar-link active">
                     <i class="fas fa-book sidebar-icon"></i>
-                    My Courses
+                    My Subjects
                 </a>
             </div>
             
@@ -558,7 +622,7 @@ $messages_result = mysqli_stmt_get_result($stmt);
         <div class="top-header">
             <div class="header-title">
                 <i class="fas fa-book me-2"></i>
-                My Courses
+                My Subjects
             </div>
             <div class="header-actions">
                 <div class="teacher-info">
@@ -594,21 +658,31 @@ $messages_result = mysqli_stmt_get_result($stmt);
             <div class="page-header">
                 <h1 class="page-title">
                     <i class="fas fa-book me-3"></i>
-                    My Courses
+                    My Subjects
                 </h1>
-                <p class="page-subtitle">Courses for <?php echo htmlspecialchars($teacher['specialization']); ?> specialization</p>
+                <p class="page-subtitle">Subjects assigned to <?php echo htmlspecialchars($teacher['specialization'] ?? $teacher['name']); ?></p>
             </div>
 
             <!-- Statistics -->
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-header">
-                        <div class="stat-icon courses">
+                        <div class="stat-icon subjects">
                             <i class="fas fa-book"></i>
                         </div>
                     </div>
-                    <div class="stat-number"><?php echo mysqli_num_rows($teacher_courses_result); ?></div>
-                    <div class="stat-label">Total Courses</div>
+                    <div class="stat-number"><?php echo mysqli_num_rows($teacher_subjects_result); ?></div>
+                    <div class="stat-label">Total Subjects</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon assignments">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                    </div>
+                    <div class="stat-number"><?php echo mysqli_num_rows($teacher_assignments_result); ?></div>
+                    <div class="stat-label">Grade-Section Assignments</div>
                 </div>
                 
                 <div class="stat-card">
@@ -652,7 +726,7 @@ $messages_result = mysqli_stmt_get_result($stmt);
                                                 </div>
                                                 <div>
                                                     <div class="fw-bold"><?php echo htmlspecialchars($student['full_name']); ?></div>
-                                                    <small class="text-muted"><?php echo htmlspecialchars($student['program']); ?></small>
+                                                    <small class="text-muted">Grade <?php echo htmlspecialchars($student['grade_name']); ?> Section <?php echo htmlspecialchars($student['section']); ?></small>
                                                 </div>
                                             </div>
                                             <button class="btn btn-primary btn-sm" onclick="openMessageModal(<?php echo $student['id']; ?>, '<?php echo htmlspecialchars($student['full_name']); ?>')">
@@ -661,7 +735,7 @@ $messages_result = mysqli_stmt_get_result($stmt);
                                         </div>
                                     <?php endwhile; ?>
                                 <?php else: ?>
-                                    <p class="text-muted">No students found in your courses.</p>
+                                    <p class="text-muted">No students found in your assigned grades.</p>
                                 <?php endif; ?>
                             </div>
                         </div>
@@ -694,32 +768,26 @@ $messages_result = mysqli_stmt_get_result($stmt);
                 </div>
             </div>
 
-            <!-- Courses Grid -->
+            <!-- Subjects Grid -->
             <div class="row">
-                <?php if (mysqli_num_rows($teacher_courses_result) > 0): ?>
-                    <?php while ($course = mysqli_fetch_assoc($teacher_courses_result)): ?>
+                <?php if (mysqli_num_rows($teacher_subjects_result) > 0): ?>
+                    <?php while ($subject = mysqli_fetch_assoc($teacher_subjects_result)): ?>
                         <div class="col-lg-4 col-md-6 mb-4">
-                            <div class="course-card">
-                                <div class="course-header">
-                                    <h5 class="course-title"><?php echo htmlspecialchars($course['course_name']); ?></h5>
-                                    <div class="course-code"><?php echo htmlspecialchars($course['course_code']); ?></div>
+                            <div class="subject-card">
+                                <div class="subject-header">
+                                    <h5 class="subject-title"><?php echo htmlspecialchars($subject['subject_name']); ?></h5>
+                                    <div class="subject-grade">Grade <?php echo htmlspecialchars($subject['grade_name']); ?></div>
                                 </div>
-                                <div class="course-body">
-                                    <p class="course-description">
-                                        <?php echo htmlspecialchars($course['course_description']); ?>
-                                    </p>
-                                    <div class="course-actions">
-                                        <?php if (!empty($course['document_path'])): ?>
-                                            <a href="<?php echo htmlspecialchars($course['document_path']); ?>" 
-                                               target="_blank" class="btn btn-primary btn-sm">
-                                                <i class="fas fa-download me-1"></i>Download
-                                            </a>
-                                        <?php endif; ?>
-                                        <button class="btn btn-outline-secondary btn-sm" onclick="viewCourseDetails(<?php echo $course['id']; ?>)">
+                                <div class="subject-body">
+                                    <div class="subject-actions">
+                                        <button class="btn btn-outline-primary btn-sm" onclick="viewSubjectDetails(<?php echo $subject['subject_id']; ?>, '<?php echo htmlspecialchars($subject['subject_name']); ?>')">
                                             <i class="fas fa-eye me-1"></i>View Details
                                         </button>
-                                        <button class="btn btn-success btn-sm" onclick="manageCourse(<?php echo $course['id']; ?>)">
+                                        <button class="btn btn-success btn-sm" onclick="manageSubject(<?php echo $subject['subject_id']; ?>, '<?php echo htmlspecialchars($subject['subject_name']); ?>')">
                                             <i class="fas fa-cog me-1"></i>Manage
+                                        </button>
+                                        <button class="btn btn-info btn-sm" onclick="viewAssignments(<?php echo $subject['subject_id']; ?>, '<?php echo htmlspecialchars($subject['subject_name']); ?>')">
+                                            <i class="fas fa-tasks me-1"></i>Assignments
                                         </button>
                                     </div>
                                 </div>
@@ -730,8 +798,8 @@ $messages_result = mysqli_stmt_get_result($stmt);
                     <div class="col-12">
                         <div class="text-center py-5">
                             <i class="fas fa-book fa-3x text-muted mb-3"></i>
-                            <h3 class="text-muted">No Courses Found</h3>
-                            <p class="text-muted">No courses are currently assigned to your specialization.</p>
+                            <h3 class="text-muted">No Subjects Found</h3>
+                            <p class="text-muted">No subjects are currently assigned to you. Please contact the administrator.</p>
                             <a href="teacherhome.php" class="btn btn-primary">
                                 <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
                             </a>
@@ -739,6 +807,46 @@ $messages_result = mysqli_stmt_get_result($stmt);
                     </div>
                 <?php endif; ?>
             </div>
+
+            <!-- Grade-Section Assignments -->
+            <?php if (mysqli_num_rows($teacher_assignments_result) > 0): ?>
+            <div class="card mt-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-tasks me-2"></i>Grade-Section Assignments</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <?php while ($assignment = mysqli_fetch_assoc($teacher_assignments_result)): ?>
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <div class="assignment-card">
+                                <div class="assignment-header">
+                                    <div class="assignment-title">
+                                        <?php echo htmlspecialchars($assignment['subject_name']); ?>
+                                    </div>
+                                    <div class="assignment-badges">
+                                        <span class="badge bg-<?php echo $assignment['is_required'] ? 'success' : 'info'; ?>">
+                                            <?php echo $assignment['is_required'] ? 'Required' : 'Elective'; ?>
+                                        </span>
+                                        <span class="badge bg-secondary">
+                                            <?php echo $assignment['credits']; ?> Credit<?php echo $assignment['credits'] > 1 ? 's' : ''; ?>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="text-muted small">
+                                    <strong>Grade:</strong> <?php echo htmlspecialchars($assignment['grade_name']); ?> Section <?php echo htmlspecialchars($assignment['section']); ?>
+                                </div>
+                                <?php if (!empty($assignment['description'])): ?>
+                                <div class="text-muted small mt-2">
+                                    <?php echo htmlspecialchars($assignment['description']); ?>
+                                </div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                        <?php endwhile; ?>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
         </div>
     </div>
 
@@ -777,12 +885,16 @@ $messages_result = mysqli_stmt_get_result($stmt);
             new bootstrap.Modal(document.getElementById('messageModal')).show();
         }
         
-        function viewCourseDetails(courseId) {
-            alert('Course details functionality can be implemented here');
+        function viewSubjectDetails(subjectId, subjectName) {
+            alert('Subject details for ' + subjectName + ' can be implemented here');
         }
         
-        function manageCourse(courseId) {
-            alert('Course management functionality can be implemented here');
+        function manageSubject(subjectId, subjectName) {
+            alert('Subject management for ' + subjectName + ' can be implemented here');
+        }
+        
+        function viewAssignments(subjectId, subjectName) {
+            alert('View assignments for ' + subjectName + ' can be implemented here');
         }
         
         // Auto-hide alerts after 5 seconds

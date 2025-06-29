@@ -22,7 +22,7 @@
   		   </li>
 
   		   <li>
-  		   	<a href="view_student.php">View Student</a>
+  		   	<a href="view_teacher_and_student.php">View Students / Teacher</a>
   		   </li>
 
   		   <li>

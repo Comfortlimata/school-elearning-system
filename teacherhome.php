@@ -28,10 +28,26 @@ mysqli_stmt_execute($stmt);
 $teacher_result = mysqli_stmt_get_result($stmt);
 $teacher = mysqli_fetch_assoc($teacher_result);
 
-// Get statistics
-$specialization = $teacher['specialization'];
-$course_count = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM courses WHERE program = '$specialization'"))[0];
-$student_count = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM students WHERE program = '$specialization'"))[0];
+// Get all grades and subjects assigned to this teacher
+$teacher_grades = mysqli_query($data, "SELECT DISTINCT g.id, g.name FROM teacher_grade_subjects tgs JOIN grades g ON tgs.grade_id = g.id WHERE tgs.teacher_id = $teacher_id ORDER BY g.name");
+$teacher_subjects = mysqli_query($data, "SELECT DISTINCT s.id, s.name FROM teacher_grade_subjects tgs JOIN subjects s ON tgs.subject_id = s.id WHERE tgs.teacher_id = $teacher_id ORDER BY s.name");
+
+// Get selected grade/subject from GET
+$selected_grade = isset($_GET['grade']) ? (int)$_GET['grade'] : 0;
+$selected_subject = isset($_GET['subject']) ? (int)$_GET['subject'] : 0;
+
+// Build filter for queries
+$filter = "WHERE tgs.teacher_id = $teacher_id";
+if ($selected_grade) $filter .= " AND tgs.grade_id = $selected_grade";
+if ($selected_subject) $filter .= " AND tgs.subject_id = $selected_subject";
+
+// Filtered assignment count
+$assignment_count = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM teacher_grade_subjects tgs $filter"))[0];
+
+// Filtered student count
+$student_count = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(DISTINCT s.id) FROM students s JOIN teacher_grade_subjects tgs ON s.grade_id = tgs.grade_id $filter"))[0];
+
+// New: Use teacher_grade_subjects mapping
 $total_students = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM students"))[0];
 ?>
 
@@ -457,7 +473,7 @@ $total_students = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM s
                     </div>
                     <div>
                         <div class="fw-bold"><?php echo htmlspecialchars($_SESSION['username']); ?></div>
-                        <small class="text-muted"><?php echo htmlspecialchars($teacher['specialization']); ?> Teacher</small>
+                        <small class="text-muted"><?php echo htmlspecialchars($teacher['specialization'] ?? ''); ?> Teacher</small>
                     </div>
                 </div>
                 
@@ -475,6 +491,30 @@ $total_students = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM s
                 <p class="welcome-subtitle">Here's your teaching dashboard overview for today.</p>
             </div>
 
+            <!-- Add filter dropdowns above the stats grid -->
+            <form method="get" class="row g-2 mb-3">
+                <div class="col-auto">
+                    <select name="grade" class="form-select" onchange="this.form.submit()">
+                        <option value="">All Grades</option>
+                        <?php mysqli_data_seek($teacher_grades, 0); while ($g = mysqli_fetch_assoc($teacher_grades)): ?>
+                            <option value="<?= $g['id'] ?>" <?= $selected_grade == $g['id'] ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($g['name']) ?>
+                            </option>
+                        <?php endwhile; ?>
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <select name="subject" class="form-select" onchange="this.form.submit()">
+                        <option value="">All Subjects</option>
+                        <?php mysqli_data_seek($teacher_subjects, 0); while ($s = mysqli_fetch_assoc($teacher_subjects)): ?>
+                            <option value="<?= $s['id'] ?>" <?= $selected_subject == $s['id'] ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($s['name']) ?>
+                            </option>
+                        <?php endwhile; ?>
+                    </select>
+                </div>
+            </form>
+
             <!-- Statistics -->
             <div class="stats-grid">
                 <div class="stat-card">
@@ -483,7 +523,7 @@ $total_students = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM s
                             <i class="fas fa-book"></i>
                         </div>
                     </div>
-                    <div class="stat-number"><?php echo $course_count; ?></div>
+                    <div class="stat-number"><?php echo $assignment_count; ?></div>
                     <div class="stat-label">My Courses</div>
                 </div>
                 

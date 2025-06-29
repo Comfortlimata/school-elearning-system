@@ -1,0 +1,1 @@
+mysqli_stmt_bind_param($stmt, "isiiss", $grade_id, $section, $subject_id, $is_required, $is_elective, $credits, $description); 

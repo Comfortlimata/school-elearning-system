@@ -47,15 +47,15 @@ mysqli_stmt_execute($stmt);
 $teacher_result = mysqli_stmt_get_result($stmt);
 $teacher = mysqli_fetch_assoc($teacher_result);
 
-// Get student grades for teacher's specialization
+// Get student grades for teacher's grade
 $grades_sql = "SELECT sg.*, s.full_name as student_name, c.course_name 
                FROM student_grades sg 
                JOIN students s ON sg.student_id = s.id 
                JOIN courses c ON sg.course_id = c.id 
-               WHERE c.program = ? 
+               WHERE c.grade_id = ? 
                ORDER BY sg.submitted_date DESC";
 $stmt = mysqli_prepare($data, $grades_sql);
-mysqli_stmt_bind_param($stmt, "s", $teacher['specialization']);
+mysqli_stmt_bind_param($stmt, "i", $teacher['grade_id']);
 mysqli_stmt_execute($stmt);
 $grades_result = mysqli_stmt_get_result($stmt);
 ?>

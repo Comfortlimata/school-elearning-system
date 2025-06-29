@@ -295,20 +295,6 @@ unset($_SESSION['successMessage']);
                         </label>
                     </div>
                     
-                    <!-- Program Field (Hidden by default) -->
-                    <div class="form-floating hidden" id="programField">
-                        <select name="program" id="program" class="form-control">
-                            <option value="">-- Select Program --</option>
-                            <option value="Computer Science">Computer Science</option>
-                            <option value="Engineering">Engineering</option>
-                            <option value="Mathematics">Mathematics</option>
-                            <option value="Business Administration">Business Administration</option>
-                        </select>
-                        <label for="program">
-                            <i class="fas fa-book me-2"></i>Program
-                        </label>
-                    </div>
-                    
                     <!-- Login Button -->
                     <button type="submit" name="submit" class="btn btn-primary btn-login">
                         <i class="fas fa-sign-in-alt me-2"></i>Sign In
@@ -339,8 +325,6 @@ unset($_SESSION['successMessage']);
         // User type selector functionality
         const userTypeOptions = document.querySelectorAll('.user-type-option');
         const usertypeInput = document.getElementById('usertype');
-        const programField = document.getElementById('programField');
-        const programSelect = document.getElementById('program');
         
         userTypeOptions.forEach(option => {
             option.addEventListener('click', () => {
@@ -353,16 +337,6 @@ unset($_SESSION['successMessage']);
                 // Update hidden input
                 const selectedType = option.dataset.type;
                 usertypeInput.value = selectedType;
-                
-                // Show/hide program field
-                if (selectedType === 'student') {
-                    programField.classList.remove('hidden');
-                    programSelect.required = true;
-                } else {
-                    programField.classList.add('hidden');
-                    programSelect.required = false;
-                    programSelect.value = '';
-                }
             });
         });
         
@@ -375,12 +349,6 @@ unset($_SESSION['successMessage']);
             if (!username || !password) {
                 e.preventDefault();
                 alert('Please fill in all required fields.');
-                return;
-            }
-            
-            if (usertype === 'student' && !programSelect.value) {
-                e.preventDefault();
-                alert('Please select a program for student login.');
                 return;
             }
         });

@@ -17,13 +17,18 @@ if (!isset($_SESSION['username']) || $_SESSION['usertype'] !== 'admin') {
 
 $message = '';
 
+// Fetch grades for dropdown
+$grades_result = mysqli_query($conn, "SELECT id, name FROM grades ORDER BY id");
+// Fetch subjects for dropdown
+
 if (isset($_POST['add_course'])) {
     $name = mysqli_real_escape_string($conn, $_POST['course_name']);
     $code = mysqli_real_escape_string($conn, $_POST['course_code']);
     $desc = mysqli_real_escape_string($conn, $_POST['course_description']);
-    $program = mysqli_real_escape_string($conn, $_POST['program']);
     $credits = mysqli_real_escape_string($conn, $_POST['credits']);
     $duration = mysqli_real_escape_string($conn, $_POST['duration']);
+    $grade_id = isset($_POST['grade_id']) ? (int)$_POST['grade_id'] : 0;
+    $section = isset($_POST['section']) ? mysqli_real_escape_string($conn, $_POST['section']) : '';
     
     // File Upload
     $filePath = '';
@@ -48,13 +53,12 @@ if (isset($_POST['add_course'])) {
     }
 
     if (empty($message)) {
-        $sql = "INSERT INTO courses (course_name, course_code, course_description, document_path, program, credits, duration)
-                VALUES ('$name', '$code', '$desc', '$filePath', '$program', '$credits', '$duration')";
-
-    if (mysqli_query($conn, $sql)) {
+        $sql = "INSERT INTO courses (course_name, course_code, course_description, document_path, credits, duration, grade_id, section)
+                VALUES ('$name', '$code', '$desc', '$filePath', '$credits', '$duration', '$grade_id', '$section')";
+        if (mysqli_query($conn, $sql)) {
             $message = "Course added successfully!";
             $_POST = array(); // Clear form
-    } else {
+        } else {
             $message = "Error: " . mysqli_error($conn);
         }
     }
@@ -185,22 +189,35 @@ $courses_count = mysqli_fetch_array(mysqli_query($conn, "SELECT COUNT(*) FROM co
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="program" class="form-label">
-                                            <i class="fas fa-graduation-cap me-2"></i>Program *
+                                        <label for="grade_id" class="form-label">
+                                            <i class="fas fa-graduation-cap me-2"></i>Grade *
                                         </label>
-                                        <select class="form-select" name="program" id="program" required>
-                                            <option value="">-- Select Program --</option>
-                                            <option value="Computer Science" <?php echo (isset($_POST['program']) && $_POST['program'] == 'Computer Science') ? 'selected' : ''; ?>>Computer Science</option>
-                                            <option value="Business Administration" <?php echo (isset($_POST['program']) && $_POST['program'] == 'Business Administration') ? 'selected' : ''; ?>>Business Administration</option>
-                                            <option value="Engineering" <?php echo (isset($_POST['program']) && $_POST['program'] == 'Engineering') ? 'selected' : ''; ?>>Engineering</option>
-                                            <option value="Mathematics" <?php echo (isset($_POST['program']) && $_POST['program'] == 'Mathematics') ? 'selected' : ''; ?>>Mathematics</option>
-                                            <option value="Physics" <?php echo (isset($_POST['program']) && $_POST['program'] == 'Physics') ? 'selected' : ''; ?>>Physics</option>
-                                            <option value="Chemistry" <?php echo (isset($_POST['program']) && $_POST['program'] == 'Chemistry') ? 'selected' : ''; ?>>Chemistry</option>
-                                            <option value="Biology" <?php echo (isset($_POST['program']) && $_POST['program'] == 'Biology') ? 'selected' : ''; ?>>Biology</option>
+                                        <select name="grade_id" id="grade_id" class="form-select" required>
+                                            <option value="">-- Select Grade --</option>
+                                            <?php if ($grades_result) mysqli_data_seek($grades_result, 0); while ($grade = mysqli_fetch_assoc($grades_result)): ?>
+                                                <option value="<?php echo $grade['id']; ?>" <?php echo (isset($_POST['grade_id']) && $_POST['grade_id'] == $grade['id']) ? 'selected' : ''; ?>>
+                                                    <?php echo htmlspecialchars($grade['name']); ?>
+                                                </option>
+                                            <?php endwhile; ?>
                                         </select>
                                     </div>
                                 </div>
-                                
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="section" class="form-label">
+                                            <i class="fas fa-layer-group me-2"></i>Section *
+                                        </label>
+                                        <select name="section" id="section" class="form-select" required>
+                                            <option value="">-- Select Section --</option>
+                                            <option value="A" <?php echo (isset($_POST['section']) && $_POST['section'] == 'A') ? 'selected' : ''; ?>>A</option>
+                                            <option value="B" <?php echo (isset($_POST['section']) && $_POST['section'] == 'B') ? 'selected' : ''; ?>>B</option>
+                                            <option value="C" <?php echo (isset($_POST['section']) && $_POST['section'] == 'C') ? 'selected' : ''; ?>>C</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="credits" class="form-label">

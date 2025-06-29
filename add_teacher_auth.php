@@ -1,4 +1,8 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+echo "Start of file<br>";
+
 session_start();
 
 // Check if user is logged in and is admin
@@ -18,33 +22,42 @@ if (!$data) {
     die("Database connection failed: " . mysqli_connect_error());
 }
 
+// Define teachers SQL and result early so it's always available
+$teachers_sql = "SELECT username, email, name, grade_section, department, status 
+                 FROM teacher 
+                 ORDER BY name";
+$teachers_result = mysqli_query($data, $teachers_sql);
+
 $message = '';
 
 // Get available courses for selection
 $courses_sql = "SELECT * FROM courses ORDER BY course_name";
 $courses_result = mysqli_query($data, $courses_sql);
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = mysqli_real_escape_string($data, $_POST['username']);
-    $email = mysqli_real_escape_string($data, $_POST['email']);
-    $name = mysqli_real_escape_string($data, $_POST['name']);
-    $phone = mysqli_real_escape_string($data, $_POST['phone']);
-    $specialization = mysqli_real_escape_string($data, $_POST['specialization']);
-    $qualification = mysqli_real_escape_string($data, $_POST['qualification']);
-    $experience_years = (int)$_POST['experience_years'];
-    $bio = mysqli_real_escape_string($data, $_POST['bio']);
-    $department = mysqli_real_escape_string($data, $_POST['department']);
-    $office_location = mysqli_real_escape_string($data, $_POST['office_location']);
-    $office_hours = mysqli_real_escape_string($data, $_POST['office_hours']);
-    $linkedin_url = mysqli_real_escape_string($data, $_POST['linkedin_url']);
-    $password = $_POST['password'];
-    $status = $_POST['status'];
-    $selected_courses = isset($_POST['courses']) ? $_POST['courses'] : [];
+// Fetch grades for selection
+$grades_result = mysqli_query($data, "SELECT id, name FROM grades ORDER BY name");
 
-    if (empty($username) || empty($email) || empty($name) || empty($password) || empty($specialization) || empty($qualification)) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $username = mysqli_real_escape_string($data, $_POST['username'] ?? '');
+    $email = mysqli_real_escape_string($data, $_POST['email'] ?? '');
+    $name = mysqli_real_escape_string($data, $_POST['name'] ?? '');
+    $phone = mysqli_real_escape_string($data, $_POST['phone'] ?? '');
+    $grade_section = mysqli_real_escape_string($data, $_POST['grade_section'] ?? '');
+    $qualification = mysqli_real_escape_string($data, $_POST['qualification'] ?? '');
+    $experience_years = (int)($_POST['experience_years'] ?? 0);
+    $bio = mysqli_real_escape_string($data, $_POST['bio'] ?? '');
+    $department = mysqli_real_escape_string($data, $_POST['department'] ?? '');
+    $office_location = mysqli_real_escape_string($data, $_POST['office_location'] ?? '');
+    $office_hours = mysqli_real_escape_string($data, $_POST['office_hours'] ?? '');
+    $linkedin_url = mysqli_real_escape_string($data, $_POST['linkedin_url'] ?? '');
+    $password = $_POST['password'] ?? '';
+    $status = $_POST['status'] ?? '';
+    $selected_grades = isset($_POST['grades']) ? $_POST['grades'] : [];
+
+    if (empty($username) || empty($email) || empty($name) || empty($password) || empty($grade_section) || empty($qualification)) {
         $message = "Please fill in all required fields!";
-    } elseif (empty($selected_courses)) {
-        $message = "Please select at least one course for the teacher!";
+    } elseif (empty($selected_grades)) {
+        $message = "Please select at least one grade for the teacher!";
     } else {
         // Check if username already exists
         $check_username = mysqli_query($data, "SELECT id FROM teacher WHERE username = '$username'");
@@ -65,14 +78,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     
                     // Insert teacher with comprehensive data
                     $insert_sql = "INSERT INTO teacher (
-                        username, password, name, email, phone, specialization, qualification, 
+                        username, password, name, email, phone, grade_section, qualification, 
                         experience_years, bio, department, office_location, office_hours, 
                         linkedin_url, status
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
                     
                     $stmt = mysqli_prepare($data, $insert_sql);
                     mysqli_stmt_bind_param($stmt, "sssssssissssss", 
-                        $username, $hashed_password, $name, $email, $phone, $specialization, 
+                        $username, $hashed_password, $name, $email, $phone, $grade_section, 
                         $qualification, $experience_years, $bio, $department, $office_location, 
                         $office_hours, $linkedin_url, $status
                     );
@@ -80,17 +93,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if (mysqli_stmt_execute($stmt)) {
                         $teacher_id = mysqli_insert_id($data);
                         
-                        // Assign courses to teacher
-                        foreach ($selected_courses as $course_id) {
-                            $assign_course_sql = "UPDATE courses SET teacher_id = ? WHERE id = ?";
-                            $stmt2 = mysqli_prepare($data, $assign_course_sql);
-                            mysqli_stmt_bind_param($stmt2, "ii", $teacher_id, $course_id);
-                            mysqli_stmt_execute($stmt2);
+                        // Assign grades to teacher
+                        foreach ($selected_grades as $grade_id) {
+                            $grade_id = (int)$grade_id;
+                            mysqli_query($data, "INSERT INTO teacher_grades (teacher_id, grade_id) VALUES ($teacher_id, $grade_id)");
                         }
                         
                         mysqli_commit($data);
-                        $message = "Teacher added successfully with " . count($selected_courses) . " course(s) assigned!";
+                        $message = "Teacher added successfully with " . count($selected_grades) . " grade(s) assigned!";
                         $_POST = array();
+                        // Refresh teachers list after adding
+                        $teachers_result = mysqli_query($data, $teachers_sql);
                     } else {
                         throw new Exception("Error adding teacher: " . mysqli_error($data));
                     }
@@ -103,10 +116,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$teachers_sql = "SELECT username, email, name, specialization, department, status 
-                 FROM teacher 
-                 ORDER BY name";
-$teachers_result = mysqli_query($data, $teachers_sql);
+// Handle delete teacher
+if (isset($_POST['delete_teacher_id'])) {
+    $username = mysqli_real_escape_string($data, $_POST['delete_teacher_id']);
+    mysqli_query($data, "DELETE FROM teacher WHERE username = '$username'");
+    header("Location: add_teacher_auth.php");
+    exit();
+}
 ?>
 
 <!DOCTYPE html>
@@ -258,8 +274,11 @@ $teachers_result = mysqli_query($data, $teachers_sql);
         <div class="row">
             <div class="col-md-8">
                 <div class="card">
-                    <div class="card-header">
+                    <div class="card-header d-flex justify-content-between align-items-center">
                         <h5><i class="fas fa-chalkboard-teacher me-2"></i>Add New Teacher</h5>
+                        <a href="current_teachers.php" class="btn btn-outline-primary btn-sm" id="viewTeachersBtn">
+                            <i class="fas fa-users me-1"></i> View Teachers
+                        </a>
                     </div>
                     <div class="card-body">
                         <?php if (!empty($message)): ?>
@@ -317,18 +336,11 @@ $teachers_result = mysqli_query($data, $teachers_sql);
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="specialization" class="form-label">
-                                            <i class="fas fa-star me-2"></i>Specialization *
+                                        <label for="grade_section" class="form-label">
+                                            <i class="fas fa-layer-group me-2"></i>Grade Section *
                                         </label>
-                                        <select class="form-control" id="specialization" name="specialization" required>
-                                            <option value="">Select Specialization</option>
-                                            <option value="Mathematics" <?php echo (isset($_POST['specialization']) && $_POST['specialization'] === 'Mathematics') ? 'selected' : ''; ?>>Mathematics</option>
-                                            <option value="Computer Science" <?php echo (isset($_POST['specialization']) && $_POST['specialization'] === 'Computer Science') ? 'selected' : ''; ?>>Computer Science</option>
-                                            <option value="Physics" <?php echo (isset($_POST['specialization']) && $_POST['specialization'] === 'Physics') ? 'selected' : ''; ?>>Physics</option>
-                                            <option value="Chemistry" <?php echo (isset($_POST['specialization']) && $_POST['specialization'] === 'Chemistry') ? 'selected' : ''; ?>>Chemistry</option>
-                                            <option value="Biology" <?php echo (isset($_POST['specialization']) && $_POST['specialization'] === 'Biology') ? 'selected' : ''; ?>>Biology</option>
-                                            <option value="English" <?php echo (isset($_POST['specialization']) && $_POST['specialization'] === 'English') ? 'selected' : ''; ?>>English</option>
-                                        </select>
+                                        <input type="text" class="form-control" id="grade_section" name="grade_section" 
+                                               value="<?php echo isset($_POST['grade_section']) ? htmlspecialchars($_POST['grade_section']) : ''; ?>" required>
                                     </div>
                                 </div>
                                 
@@ -425,34 +437,17 @@ $teachers_result = mysqli_query($data, $teachers_sql);
                                 </select>
                             </div>
 
-                            <!-- Course Selection Section -->
-                            <div class="course-selection">
-                                <h6><i class="fas fa-book me-2"></i>Assign Courses to Teacher *</h6>
-                                <p class="text-muted">Select the courses this teacher will be responsible for:</p>
-                                
-                                <div id="selectedCount" class="selected-count" style="display: none;">
-                                    <i class="fas fa-check-circle me-2"></i>
-                                    <span id="countText">0 courses selected</span>
-                                </div>
-                                
-                                <div class="course-grid">
-                                    <?php if (mysqli_num_rows($courses_result) > 0): ?>
-                                        <?php while ($course = mysqli_fetch_assoc($courses_result)): ?>
-                                            <div class="course-item" onclick="toggleCourse(<?php echo $course['id']; ?>)">
-                                                <input type="checkbox" class="course-checkbox" name="courses[]" 
-                                                       value="<?php echo $course['id']; ?>" id="course_<?php echo $course['id']; ?>">
-                                                <div class="course-title"><?php echo htmlspecialchars($course['course_name']); ?></div>
-                                                <div class="course-code"><?php echo htmlspecialchars($course['course_code']); ?></div>
-                                                <div class="course-description"><?php echo htmlspecialchars($course['course_description']); ?></div>
-                                                <div class="course-program"><?php echo htmlspecialchars($course['program']); ?></div>
-                                            </div>
-                                        <?php endwhile; ?>
-                                    <?php else: ?>
-                                        <div class="col-12">
-                                            <p class="text-muted">No courses available. Please add courses first.</p>
-                                        </div>
-                                    <?php endif; ?>
-                                </div>
+                            <div class="form-group">
+                                <label for="grades" class="form-label">
+                                    <i class="fas fa-graduation-cap me-2"></i>Grades Taught *</label>
+                                <select class="form-control" id="grades" name="grades[]" multiple required>
+                                    <?php while ($grade = mysqli_fetch_assoc($grades_result)): ?>
+                                        <option value="<?php echo $grade['id']; ?>" <?php echo (isset($_POST['grades']) && in_array($grade['id'], $_POST['grades'])) ? 'selected' : ''; ?>>
+                                            <?php echo htmlspecialchars($grade['name']); ?>
+                                        </option>
+                                    <?php endwhile; ?>
+                                </select>
+                                <small class="text-muted">Hold Ctrl (Windows) or Command (Mac) to select multiple grades.</small>
                             </div>
                             
                             <div class="form-group">
@@ -464,54 +459,6 @@ $teachers_result = mysqli_query($data, $teachers_sql);
                                 </a>
                             </div>
                         </form>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h5><i class="fas fa-list me-2"></i>Current Teachers</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Name</th>
-                                        <th>Specialization</th>
-                                        <th>Courses</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php if ($teachers_result && mysqli_num_rows($teachers_result) > 0): ?>
-                                        <?php while ($teacher = mysqli_fetch_assoc($teachers_result)): ?>
-                                            <tr>
-                                                <td><strong><?php echo htmlspecialchars($teacher['name']); ?></strong></td>
-                                                <td><?php echo htmlspecialchars($teacher['specialization']); ?></td>
-                                                <td>
-                                                    <span class="badge badge-info">
-                                                        <?php echo $teacher['course_count']; ?> course(s)
-                                                    </span>
-                                                </td>
-                                                <td>
-                                                    <span class="badge badge-<?php echo $teacher['status'] == 'active' ? 'success' : 'secondary'; ?>">
-                                                        <?php echo ucfirst($teacher['status']); ?>
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        <?php endwhile; ?>
-                                    <?php else: ?>
-                                        <tr>
-                                            <td colspan="4" class="text-center">
-                                                <i class="fas fa-info-circle me-2"></i>No teachers found
-                                            </td>
-                                        </tr>
-                                    <?php endif; ?>
-                                </tbody>
-                            </table>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -598,6 +545,7 @@ $teachers_result = mysqli_query($data, $teachers_sql);
             }
         }
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
 
