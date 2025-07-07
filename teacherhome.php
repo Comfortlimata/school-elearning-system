@@ -29,26 +29,69 @@ $teacher_result = mysqli_stmt_get_result($stmt);
 $teacher = mysqli_fetch_assoc($teacher_result);
 
 // Get all grades and subjects assigned to this teacher
-$teacher_grades = mysqli_query($data, "SELECT DISTINCT g.id, g.name FROM teacher_grade_subjects tgs JOIN grades g ON tgs.grade_id = g.id WHERE tgs.teacher_id = $teacher_id ORDER BY g.name");
-$teacher_subjects = mysqli_query($data, "SELECT DISTINCT s.id, s.name FROM teacher_grade_subjects tgs JOIN subjects s ON tgs.subject_id = s.id WHERE tgs.teacher_id = $teacher_id ORDER BY s.name");
+$teacher_grades = mysqli_query($data, "SELECT DISTINCT g.name as name FROM teacher_grade_subjects tgs JOIN grades g ON tgs.grade_id = g.id WHERE tgs.teacher_id = $teacher_id ORDER BY g.name");
+$teacher_subjects = mysqli_query($data, "SELECT DISTINCT s.name as name, g.name as grade_name, (SELECT GROUP_CONCAT(DISTINCT gsa.section) FROM grade_subject_assignments gsa WHERE gsa.grade_id = tgs.grade_id AND gsa.subject_id = tgs.subject_id) as sections FROM teacher_grade_subjects tgs JOIN grades g ON tgs.grade_id = g.id JOIN subjects s ON tgs.subject_id = s.id WHERE tgs.teacher_id = $teacher_id ORDER BY g.name, s.name");
 
 // Get selected grade/subject from GET
-$selected_grade = isset($_GET['grade']) ? (int)$_GET['grade'] : 0;
-$selected_subject = isset($_GET['subject']) ? (int)$_GET['subject'] : 0;
+$selected_grade = isset($_GET['grade']) ? $_GET['grade'] : '';
+$selected_subject = isset($_GET['subject']) ? $_GET['subject'] : '';
 
 // Build filter for queries
 $filter = "WHERE tgs.teacher_id = $teacher_id";
-if ($selected_grade) $filter .= " AND tgs.grade_id = $selected_grade";
-if ($selected_subject) $filter .= " AND tgs.subject_id = $selected_subject";
+if ($selected_grade) $filter .= " AND tgs.grade = '$selected_grade'";
+if ($selected_subject) $filter .= " AND tgs.subject = '$selected_subject'";
 
 // Filtered assignment count
 $assignment_count = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM teacher_grade_subjects tgs $filter"))[0];
 
-// Filtered student count
-$student_count = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(DISTINCT s.id) FROM students s JOIN teacher_grade_subjects tgs ON s.grade_id = tgs.grade_id $filter"))[0];
+// Filtered student count - simplified for now
+$student_count = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM students"))[0];
 
 // New: Use teacher_grade_subjects mapping
 $total_students = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM students"))[0];
+
+// Handle Add Course form submission (at the top, after DB connection and teacher info)
+$add_course_message = '';
+$grades_result = mysqli_query($data, "SELECT id, name FROM grades ORDER BY id");
+if (isset($_POST['add_course_teacher'])) {
+    $name = mysqli_real_escape_string($data, $_POST['course_name']);
+    $code = mysqli_real_escape_string($data, $_POST['course_code']);
+    $desc = mysqli_real_escape_string($data, $_POST['course_description']);
+    $credits = mysqli_real_escape_string($data, $_POST['credits']);
+    $duration = mysqli_real_escape_string($data, $_POST['duration']);
+    $grade_id = isset($_POST['grade_id']) ? (int)$_POST['grade_id'] : 0;
+    $section = isset($_POST['section']) ? mysqli_real_escape_string($data, $_POST['section']) : '';
+    $teacher_id = $_SESSION['teacher_id'];
+    // File Upload
+    $filePath = '';
+    if (isset($_FILES['course_file']) && $_FILES['course_file']['error'] == 0) {
+        $allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+        $fileType = $_FILES['course_file']['type'];
+        if (!in_array($fileType, $allowedTypes)) {
+            $add_course_message = "Invalid file type. Only PDF, DOC, and DOCX allowed.";
+        } else {
+            $uploadDir = "uploads/";
+            if (!file_exists($uploadDir)) mkdir($uploadDir, 0755, true);
+            $fileName = time() . '_' . basename($_FILES["course_file"]["name"]);
+            $filePath = $uploadDir . $fileName;
+            if (!move_uploaded_file($_FILES["course_file"]["tmp_name"], $filePath)) {
+                $add_course_message = "Failed to upload file. Please try again.";
+                $filePath = '';
+            }
+        }
+    }
+    if (empty($add_course_message)) {
+        $sql = "INSERT INTO courses (course_name, course_code, course_description, document_path, credits, duration, grade_id, section, teacher_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $stmt = mysqli_prepare($data, $sql);
+        mysqli_stmt_bind_param($stmt, "ssssiiisi", $name, $code, $desc, $filePath, $credits, $duration, $grade_id, $section, $teacher_id);
+        if (mysqli_stmt_execute($stmt)) {
+            $add_course_message = "<span style='color:green;'>Course added successfully!</span>";
+            $_POST = array(); // Clear form
+        } else {
+            $add_course_message = "<span style='color:red;'>Error: " . mysqli_error($data) . "</span>";
+        }
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -409,7 +452,6 @@ $total_students = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM s
                 Teacher Portal
             </a>
         </div>
-        
         <div class="sidebar-menu">
             <div class="sidebar-item">
                 <a href="teacherhome.php" class="sidebar-link active">
@@ -417,47 +459,21 @@ $total_students = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM s
                     Dashboard
                 </a>
             </div>
-            
             <div class="sidebar-item">
-                <a href="teacher_courses.php" class="sidebar-link">
+                <a href="add_courses.php" class="sidebar-link">
                     <i class="fas fa-book sidebar-icon"></i>
-                    My Courses
+                    Manage Courses
                 </a>
             </div>
-            
             <div class="sidebar-item">
-                <a href="teacher_student_management.php" class="sidebar-link">
-                    <i class="fas fa-users sidebar-icon"></i>
-                    My Students
-                </a>
-            </div>
-            
-            <div class="sidebar-item">
-                <a href="teacher_content_management.php" class="sidebar-link">
-                    <i class="fas fa-tasks sidebar-icon"></i>
-                    Assignments & Content
-                </a>
-            </div>
-            
-            <div class="sidebar-item">
-                <a href="teacher_grade_management.php" class="sidebar-link">
-                    <i class="fas fa-chart-bar sidebar-icon"></i>
-                    Grades
-                </a>
-            </div>
-            
-            <div class="sidebar-item">
-                <a href="teacher_schedule_management.php" class="sidebar-link">
-                    <i class="fas fa-calendar sidebar-icon"></i>
-                    Schedule
+                <a href="teacher_view_courses.php" class="sidebar-link">
+                    <i class="fas fa-list sidebar-icon"></i>
+                    View Courses & Students
                 </a>
             </div>
         </div>
     </div>
-
-    <!-- Main Content -->
     <div class="main-content">
-        <!-- Header -->
         <div class="top-header">
             <div class="d-flex align-items-center">
                 <button class="sidebar-toggle me-3" id="sidebarToggle">
@@ -465,7 +481,6 @@ $total_students = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM s
                 </button>
                 <h1 class="header-title mb-0">Dashboard</h1>
             </div>
-            
             <div class="header-actions">
                 <div class="teacher-info">
                     <div class="teacher-avatar">
@@ -473,134 +488,74 @@ $total_students = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM s
                     </div>
                     <div>
                         <div class="fw-bold"><?php echo htmlspecialchars($_SESSION['username']); ?></div>
-                        <small class="text-muted"><?php echo htmlspecialchars($teacher['specialization'] ?? ''); ?> Teacher</small>
+                        <small class="text-muted">Teacher</small>
                     </div>
                 </div>
-                
                 <a href="logout.php" class="logout-btn">
                     <i class="fas fa-sign-out-alt me-2"></i>Logout
                 </a>
             </div>
         </div>
-
-        <!-- Dashboard Content -->
         <div class="dashboard-content">
-            <!-- Welcome Section -->
             <div class="welcome-section">
-                <h1 class="welcome-title">Welcome back, <?php echo htmlspecialchars($_SESSION['username']); ?>!</h1>
-                <p class="welcome-subtitle">Here's your teaching dashboard overview for today.</p>
+                <h1 class="welcome-title">Welcome, <?php echo htmlspecialchars($_SESSION['username']); ?>!</h1>
+                <p class="welcome-subtitle">This is your e-learning dashboard. More features coming soon.</p>
             </div>
+            <!-- Removed Upload Material Section and Uploaded Materials Table -->
 
-            <!-- Add filter dropdowns above the stats grid -->
-            <form method="get" class="row g-2 mb-3">
-                <div class="col-auto">
-                    <select name="grade" class="form-select" onchange="this.form.submit()">
-                        <option value="">All Grades</option>
-                        <?php mysqli_data_seek($teacher_grades, 0); while ($g = mysqli_fetch_assoc($teacher_grades)): ?>
-                            <option value="<?= $g['id'] ?>" <?= $selected_grade == $g['id'] ? 'selected' : '' ?>>
-                                <?= htmlspecialchars($g['name']) ?>
-                            </option>
-                        <?php endwhile; ?>
-                    </select>
-                </div>
-                <div class="col-auto">
-                    <select name="subject" class="form-select" onchange="this.form.submit()">
-                        <option value="">All Subjects</option>
-                        <?php mysqli_data_seek($teacher_subjects, 0); while ($s = mysqli_fetch_assoc($teacher_subjects)): ?>
-                            <option value="<?= $s['id'] ?>" <?= $selected_subject == $s['id'] ? 'selected' : '' ?>>
-                                <?= htmlspecialchars($s['name']) ?>
-                            </option>
-                        <?php endwhile; ?>
-                    </select>
-                </div>
-            </form>
 
-            <!-- Statistics -->
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-header">
-                        <div class="stat-icon courses">
-                            <i class="fas fa-book"></i>
-                        </div>
-                    </div>
-                    <div class="stat-number"><?php echo $assignment_count; ?></div>
-                    <div class="stat-label">My Courses</div>
+            <div class="card mt-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-book me-2"></i>Your Registered Subjects</h5>
                 </div>
-                
-                <div class="stat-card">
-                    <div class="stat-header">
-                        <div class="stat-icon students">
-                            <i class="fas fa-users"></i>
-                        </div>
-                    </div>
-                    <div class="stat-number"><?php echo $student_count; ?></div>
-                    <div class="stat-label">My Students</div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-header">
-                        <div class="stat-icon total-students">
-                            <i class="fas fa-user-graduate"></i>
-                        </div>
-                    </div>
-                    <div class="stat-number"><?php echo $total_students; ?></div>
-                    <div class="stat-label">Total Students</div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-header">
-                        <div class="stat-icon specialization">
-                            <i class="fas fa-star"></i>
-                        </div>
-                    </div>
-                    <div class="stat-number"><?php echo htmlspecialchars($teacher['experience_years']); ?>+</div>
-                    <div class="stat-label">Years Experience</div>
-                </div>
-            </div>
-
-            <!-- Quick Actions -->
-            <div class="quick-actions">
-                <h2 class="section-title">Quick Actions</h2>
-                <div class="actions-grid">
-                    <a href="teacher_courses.php" class="action-card">
-                        <div class="action-icon">
-                            <i class="fas fa-book"></i>
-                        </div>
-                        <div class="action-title">View Courses</div>
-                        <div class="action-desc">Manage your course materials</div>
-                    </a>
+                <div class="card-body">
+                    <?php 
+                    // Get teacher's assignments with proper grade-subject-section display
+                    $teacher_classes_sql = "SELECT 
+                        s.name as subject,
+                        g.name as grade,
+                        tgs.grade_id,
+                        tgs.subject_id,
+                        gsa.section
+                    FROM teacher_grade_subjects tgs
+                    JOIN grades g ON tgs.grade_id = g.id
+                    JOIN subjects s ON tgs.subject_id = s.id
+                    JOIN grade_subject_assignments gsa ON gsa.grade_id = tgs.grade_id AND gsa.subject_id = tgs.subject_id
+                    WHERE tgs.teacher_id = $teacher_id
+                    ORDER BY g.name, s.name, gsa.section";
                     
-                    <a href="teacher_student_management.php" class="action-card">
-                        <div class="action-icon">
-                            <i class="fas fa-users"></i>
-                        </div>
-                        <div class="action-title">Student List</div>
-                        <div class="action-desc">View your students</div>
-                    </a>
+                    $teacher_classes = mysqli_query($data, $teacher_classes_sql);
                     
-                    <a href="teacher_content_management.php" class="action-card">
-                        <div class="action-icon">
-                            <i class="fas fa-tasks"></i>
+                    if ($teacher_classes && mysqli_num_rows($teacher_classes) > 0): ?>
+                        <ul class="list-group">
+                            <?php while ($class = mysqli_fetch_assoc($teacher_classes)): ?>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <a href="teacher_view_courses.php?grade_id=<?php echo $class['grade_id']; ?>&section=<?php echo urlencode($class['section']); ?>&subject_id=<?php echo $class['subject_id']; ?>" style="text-decoration:none;font-weight:bold;">
+                                            <?php echo htmlspecialchars($class['subject']); ?>
+                                        </a>
+                                        <br>
+                                        <small class="text-muted">
+                                            Grade <?php echo htmlspecialchars($class['grade']); ?>
+                                            - Section: <?php echo htmlspecialchars($class['section']); ?>
+                                        </small>
+                                    </div>
+                                    <span class="badge bg-primary">
+                                        Grade <?php echo htmlspecialchars($class['grade']); ?> (<?php echo htmlspecialchars($class['section']); ?>)
+                                    </span>
+                                </li>
+                            <?php endwhile; ?>
+                        </ul>
+                    <?php else: ?>
+                        <div class="alert alert-warning mb-0">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>No subjects found for your grade and section.</strong>
+                            <br>
+                            <small class="text-muted">
+                                Please contact the administrator to assign subjects to your account, or use the new teacher registration form to properly set up your grade-subject assignments.
+                            </small>
                         </div>
-                        <div class="action-title">Assignments</div>
-                        <div class="action-desc">Create and grade assignments</div>
-                    </a>
-                    
-                    <a href="teacher_grade_management.php" class="action-card">
-                        <div class="action-icon">
-                            <i class="fas fa-chart-bar"></i>
-                        </div>
-                        <div class="action-title">Grades</div>
-                        <div class="action-desc">Manage student grades</div>
-                    </a>
-                    
-                    <a href="teacher_schedule_management.php" class="action-card">
-                        <div class="action-icon">
-                            <i class="fas fa-calendar-alt"></i>
-                        </div>
-                        <div class="action-title">Schedule</div>
-                        <div class="action-desc">View your teaching schedule</div>
-                    </a>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -637,5 +592,89 @@ $total_students = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM s
             }
         });
     </script>
+
+    <!-- Add Course Modal -->
+    <div class="modal fade" id="addCourseModal" tabindex="-1" aria-labelledby="addCourseModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <form method="POST" enctype="multipart/form-data">
+            <div class="modal-header">
+              <h5 class="modal-title" id="addCourseModalLabel"><i class="fas fa-book me-2"></i>Add New Course</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <?php if (!empty($add_course_message)): ?>
+                <div class="alert alert-info"><?php echo $add_course_message; ?></div>
+              <?php endif; ?>
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group mb-3">
+                    <label for="course_name" class="form-label"><i class="fas fa-book me-2"></i>Course Name *</label>
+                    <input type="text" class="form-control" name="course_name" id="course_name" required>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group mb-3">
+                    <label for="course_code" class="form-label"><i class="fas fa-code me-2"></i>Course Code *</label>
+                    <input type="text" class="form-control" name="course_code" id="course_code" required>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group mb-3">
+                    <label for="grade_id" class="form-label"><i class="fas fa-graduation-cap me-2"></i>Grade *</label>
+                    <select name="grade_id" id="grade_id" class="form-select" required>
+                      <option value="">-- Select Grade --</option>
+                      <?php if ($grades_result) mysqli_data_seek($grades_result, 0); while ($grade = mysqli_fetch_assoc($grades_result)): ?>
+                        <option value="<?php echo $grade['id']; ?>"><?php echo htmlspecialchars($grade['name']); ?></option>
+                      <?php endwhile; ?>
+                    </select>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group mb-3">
+                    <label for="section" class="form-label"><i class="fas fa-layer-group me-2"></i>Section *</label>
+                    <select name="section" id="section" class="form-select" required>
+                      <option value="">-- Select Section --</option>
+                      <option value="A">A</option>
+                      <option value="B">B</option>
+                      <option value="C">C</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group mb-3">
+                    <label for="credits" class="form-label"><i class="fas fa-star me-2"></i>Credits</label>
+                    <input type="number" class="form-control" name="credits" id="credits" min="1" max="6" value="3">
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group mb-3">
+                    <label for="duration" class="form-label"><i class="fas fa-clock me-2"></i>Duration (weeks)</label>
+                    <input type="number" class="form-control" name="duration" id="duration" min="1" max="52" value="16">
+                  </div>
+                </div>
+              </div>
+              <div class="form-group mb-3">
+                <label for="course_file" class="form-label"><i class="fas fa-file-upload me-2"></i>Course Document</label>
+                <input class="form-control" type="file" name="course_file" id="course_file" accept=".pdf,.doc,.docx">
+                <small class="text-muted">PDF, DOC, DOCX (Max 10MB)</small>
+              </div>
+              <div class="form-group mb-3">
+                <label for="course_description" class="form-label"><i class="fas fa-align-left me-2"></i>Course Description *</label>
+                <textarea class="form-control" name="course_description" id="course_description" rows="4" required></textarea>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="submit" name="add_course_teacher" class="btn btn-primary"><i class="fas fa-save me-2"></i>Add Course</button>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
 </body>
 </html> 

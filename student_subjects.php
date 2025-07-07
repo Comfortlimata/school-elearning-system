@@ -14,20 +14,20 @@ if (!$conn) {
 }
 $grade_id = $_SESSION['grade_id'] ?? null;
 $section = $_SESSION['section'] ?? '';
-$courses = false;
-if ($grade_id) {
-    $courses_sql = "SELECT * FROM courses WHERE grade_id = ? AND section = ?";
-    $stmt = mysqli_prepare($conn, $courses_sql);
+$subjects = false;
+if ($grade_id && $section) {
+    $sql = "SELECT s.id as subject_id, s.name FROM grade_subject_assignments gsa JOIN subjects s ON gsa.subject_id = s.id WHERE gsa.grade_id = ? AND gsa.section = ? ORDER BY s.name";
+    $stmt = mysqli_prepare($conn, $sql);
     mysqli_stmt_bind_param($stmt, "is", $grade_id, $section);
     mysqli_stmt_execute($stmt);
-    $courses = mysqli_stmt_get_result($stmt);
+    $subjects = mysqli_stmt_get_result($stmt);
 }
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <title>My Courses</title>
+    <title>My Subjects</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -35,35 +35,27 @@ if ($grade_id) {
 <body>
     <div class="container mt-5">
         <h3 class="text-center mb-4">
-            <i class="fas fa-book me-2"></i>
-            My Courses
+            <i class="fas fa-book-open me-2"></i>
+            My Subjects
         </h3>
-        <?php if ($courses && mysqli_num_rows($courses) > 0): ?>
+        <?php if ($subjects && mysqli_num_rows($subjects) > 0): ?>
             <table class="table table-bordered">
                 <thead>
                     <tr>
-                        <th>Course Name</th>
-                        <th>Course Code</th>
-                        <th>Description</th>
-                        <th>Credits</th>
-                        <th>Duration</th>
+                        <th>Subject Name</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php while ($course = mysqli_fetch_assoc($courses)): ?>
+                    <?php while ($subject = mysqli_fetch_assoc($subjects)): ?>
                         <tr>
-                            <td><?php echo htmlspecialchars($course['course_name']); ?></td>
-                            <td><?php echo htmlspecialchars($course['course_code']); ?></td>
-                            <td><?php echo htmlspecialchars($course['course_description']); ?></td>
-                            <td><?php echo htmlspecialchars($course['credits']); ?></td>
-                            <td><?php echo htmlspecialchars($course['duration']); ?> weeks</td>
+                            <td><a href="student_subject_materials.php?subject_id=<?php echo $subject['subject_id']; ?>" class="btn btn-link"><?php echo htmlspecialchars($subject['name']); ?></a></td>
                         </tr>
                     <?php endwhile; ?>
                 </tbody>
             </table>
         <?php else: ?>
             <div class="alert alert-info text-center">
-                No courses found for your grade and section.
+                No subjects found for your grade and section.
             </div>
         <?php endif; ?>
         <div class="text-center mt-4">
