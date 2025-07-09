@@ -38,40 +38,40 @@ Admins can upload and manage course documents, announcements, and user roles.
 
 Below are some screenshots of the platform:
 
-![Screenshot 1](screenshots/Teacher Dashboard - Miles e-School Academy and 4 more pages - Personal - Microsoft​ Edge 09_07_2025 3_19_08 am.png)
+![Student Dashboard](screenshots/student_dashboard.png)
 *Student Dashboard - Overview*
 
-![Screenshot 2](screenshots/Teacher Dashboard - Miles e-School Academy and 4 more pages - Personal - Microsoft​ Edge 09_07_2025 3_18_52 am.png)
+![Student Assignments](screenshots/student_assignments.png)
 *Student Assignments Page*
 
-![Screenshot 3](screenshots/Teacher Dashboard - Miles e-School Academy and 4 more pages - Personal - Microsoft​ Edge 09_07_2025 3_18_33 am.png)
+![Student Subjects](screenshots/student_subjects.png)
 *Student Subjects List*
 
-![Screenshot 4](screenshots/Teacher Dashboard - Miles e-School Academy and 4 more pages - Personal - Microsoft​ Edge 09_07_2025 3_18_09 am.png)
+![Student Profile](screenshots/student_profile.png)
 *Student Profile Page*
 
-![Screenshot 5](screenshots/Teacher Dashboard - Miles e-School Academy and 4 more pages - Personal - Microsoft​ Edge 09_07_2025 3_17_38 am.png)
+![Student Notifications](screenshots/student_notifications.png)
 *Student Notifications*
 
-![Screenshot 6](screenshots/Teacher Dashboard - Miles e-School Academy and 4 more pages - Personal - Microsoft​ Edge 09_07_2025 3_17_24 am.png)
+![Teacher Dashboard](screenshots/teacher_dashboard.png)
 *Teacher Dashboard - Overview*
 
-![Screenshot 7](screenshots/Teacher Dashboard - Miles e-School Academy and 4 more pages - Personal - Microsoft​ Edge 09_07_2025 3_17_01 am.png)
+![Teacher Classes](screenshots/teacher_classes.png)
 *Teacher Classes Page*
 
-![Screenshot 8](screenshots/Teacher Dashboard - Miles e-School Academy and 4 more pages - Personal - Microsoft​ Edge 09_07_2025 3_16_51 am.png)
+![Teacher Assignments](screenshots/teacher_assignments.png)
 *Teacher Assignments Management*
 
-![Screenshot 9](screenshots/Teacher Dashboard - Miles e-School Academy and 4 more pages - Personal - Microsoft​ Edge 09_07_2025 3_16_37 am.png)
+![Teacher Notifications](screenshots/teacher_notifications.png)
 *Teacher Notifications*
 
-![Screenshot 10](screenshots/Teacher Dashboard - Miles e-School Academy and 4 more pages - Personal - Microsoft​ Edge 09_07_2025 3_16_23 am.png)
+![Teacher Profile](screenshots/teacher_profile.png)
 *Teacher Profile Page*
 
-![Screenshot 11](screenshots/Teacher Dashboard - Miles e-School Academy and 4 more pages - Personal - Microsoft​ Edge 09_07_2025 3_15_13 am.png)
+![Admin Dashboard](screenshots/admin_dashboard.png)
 *Admin Dashboard*
 
-![Screenshot 12](screenshots/Teacher Dashboard - Miles e-School Academy and 4 more pages - Personal - Microsoft​ Edge 09_07_2025 3_14_35 am.png)
+![Admin User Management](screenshots/admin_user_management.png)
 *Admin User Management*
 
 ---
