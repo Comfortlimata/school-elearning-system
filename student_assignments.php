@@ -240,6 +240,11 @@ $sample_assignments = [
         /* Assignments Content */
         .assignments-content {
             padding: 2rem;
+            max-width: 900px;
+            margin: 2rem auto 0 auto;
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.07);
         }
         
         .page-header {
@@ -446,66 +451,49 @@ $sample_assignments = [
                 display: block;
             }
         }
+        @media (max-width: 1200px) {
+            .main-content {
+                margin-left: 280px;
+            }
+        }
+        @media (max-width: 992px) {
+            .main-content {
+                margin-left: 0;
+            }
+            .assignments-content {
+                max-width: 100%;
+                margin: 1rem 0;
+                border-radius: 0;
+                box-shadow: none;
+            }
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .assignments-content {
+                padding: 1rem 0.5rem;
+            }
+        }
     </style>
 </head>
 
 <body>
-    <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <a href="#" class="sidebar-brand">
-                <i class="fas fa-user-graduate me-2"></i>
-                Student Portal
-            </a>
-        </div>
-        
-        <div class="sidebar-menu">
-            <div class="sidebar-item">
-                <a href="studenthome.php" class="sidebar-link">
-                    <i class="fas fa-tachometer-alt sidebar-icon"></i>
-                    Dashboard
-                </a>
-            </div>
-            
-            <div class="sidebar-item">
-                <a href="student_courses.php" class="sidebar-link">
-                    <i class="fas fa-book sidebar-icon"></i>
-                    My Courses
-                </a>
-            </div>
-            
-            <div class="sidebar-item">
-                <a href="student_results.php" class="sidebar-link">
-                    <i class="fas fa-chart-bar sidebar-icon"></i>
-                    My Results
-                </a>
-            </div>
-            
-            <div class="sidebar-item">
-                <a href="student_assignments.php" class="sidebar-link active">
-                    <i class="fas fa-tasks sidebar-icon"></i>
-                    Assignments
-                </a>
-            </div>
-            
-            <div class="sidebar-item">
-                <a href="student_schedule.php" class="sidebar-link">
-                    <i class="fas fa-calendar sidebar-icon"></i>
-                    Schedule
-                </a>
-            </div>
-            
-            <div class="sidebar-item">
-                <a href="student_profile.php" class="sidebar-link">
-                    <i class="fas fa-user sidebar-icon"></i>
-                    Profile
-                </a>
-            </div>
-        </div>
-    </div>
+    <!-- Sidebar (hidden for this page) -->
+    <!-- <div class="sidebar" id="sidebar"> ... </div> -->
 
     <!-- Main Content -->
     <div class="main-content">
+        <!-- Back Button -->
+        <div class="container pt-4 pb-2">
+            <a href="studenthome.php" class="btn btn-secondary mb-3"><i class="fas fa-arrow-left"></i> Back to Home</a>
+        </div>
         <!-- Header -->
         <div class="top-header">
             <div class="d-flex align-items-center">

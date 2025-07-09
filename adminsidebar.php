@@ -18,11 +18,7 @@
   		</li>
 
   		<li>
-  		   <a href="add_student.php">Add Student</a>
-  		   </li>
-
-  		   <li>
-  		   	<a href="view_teacher_and_student.php">View Students / Teacher</a>
+  		   <a href="view_teacher_and_student.php">View Students / Teacher</a>
   		   </li>
 
   		   <li>
@@ -40,6 +36,8 @@
   				<li>
 			<a href="add_teacher.php" class="active">Add Teacher</a>
 		</li>
+
+        <a href="teacherclasses.php" class="sidebar-link"><i class="fas fa-users-class"></i>My Classes</a>
 
   	</ul>  
   </aside>

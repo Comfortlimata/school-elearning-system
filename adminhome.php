@@ -229,12 +229,6 @@ $admission_count = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM 
                 </a>
             </li>
             <li>
-                <a href="add_teacher_with_sections.php">
-                    <i class="fas fa-chalkboard-teacher me-2"></i>
-                    Add Teacher
-                </a>
-            </li>
-            <li>
                 <a href="add_courses.php">
                     <i class="fas fa-book me-2"></i>
                     Add Courses
@@ -325,15 +319,13 @@ $admission_count = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM 
                     <div class="action-title">Add Student</div>
                     <div class="action-desc">Register new students</div>
                 </a>
-                
-                <a href="add_teacher_with_sections.php" class="action-card">
+                <a href="add_teacher.php" class="action-card">
                     <div class="action-icon">
                         <i class="fas fa-chalkboard-teacher"></i>
                     </div>
                     <div class="action-title">Add Teacher</div>
-                    <div class="action-desc">Register new teachers with section assignments</div>
+                    <div class="action-desc">Register new teachers</div>
                 </a>
-                
                 <a href="add_courses.php" class="action-card">
                     <div class="action-icon">
                         <i class="fas fa-book"></i>

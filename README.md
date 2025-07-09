@@ -34,99 +34,49 @@ Admins can upload and manage course documents, announcements, and user roles.
 
 ---
 
+## 🖼️ Screenshots
+
+Below are some screenshots of the platform:
+
+![Screenshot 1](screenshots/Teacher Dashboard - Miles e-School Academy and 4 more pages - Personal - Microsoft​ Edge 09_07_2025 3_19_08 am.png)
+*Student Dashboard - Overview*
+
+![Screenshot 2](screenshots/Teacher Dashboard - Miles e-School Academy and 4 more pages - Personal - Microsoft​ Edge 09_07_2025 3_18_52 am.png)
+*Student Assignments Page*
+
+![Screenshot 3](screenshots/Teacher Dashboard - Miles e-School Academy and 4 more pages - Personal - Microsoft​ Edge 09_07_2025 3_18_33 am.png)
+*Student Subjects List*
+
+![Screenshot 4](screenshots/Teacher Dashboard - Miles e-School Academy and 4 more pages - Personal - Microsoft​ Edge 09_07_2025 3_18_09 am.png)
+*Student Profile Page*
+
+![Screenshot 5](screenshots/Teacher Dashboard - Miles e-School Academy and 4 more pages - Personal - Microsoft​ Edge 09_07_2025 3_17_38 am.png)
+*Student Notifications*
+
+![Screenshot 6](screenshots/Teacher Dashboard - Miles e-School Academy and 4 more pages - Personal - Microsoft​ Edge 09_07_2025 3_17_24 am.png)
+*Teacher Dashboard - Overview*
+
+![Screenshot 7](screenshots/Teacher Dashboard - Miles e-School Academy and 4 more pages - Personal - Microsoft​ Edge 09_07_2025 3_17_01 am.png)
+*Teacher Classes Page*
+
+![Screenshot 8](screenshots/Teacher Dashboard - Miles e-School Academy and 4 more pages - Personal - Microsoft​ Edge 09_07_2025 3_16_51 am.png)
+*Teacher Assignments Management*
+
+![Screenshot 9](screenshots/Teacher Dashboard - Miles e-School Academy and 4 more pages - Personal - Microsoft​ Edge 09_07_2025 3_16_37 am.png)
+*Teacher Notifications*
+
+![Screenshot 10](screenshots/Teacher Dashboard - Miles e-School Academy and 4 more pages - Personal - Microsoft​ Edge 09_07_2025 3_16_23 am.png)
+*Teacher Profile Page*
+
+![Screenshot 11](screenshots/Teacher Dashboard - Miles e-School Academy and 4 more pages - Personal - Microsoft​ Edge 09_07_2025 3_15_13 am.png)
+*Admin Dashboard*
+
+![Screenshot 12](screenshots/Teacher Dashboard - Miles e-School Academy and 4 more pages - Personal - Microsoft​ Edge 09_07_2025 3_14_35 am.png)
+*Admin User Management*
+
+---
+
 ## 📁 Folder Structure
 
 ```
-e-learning/
-├── admin/
-│   ├── dashboard.php
-│   ├── upload_material.php
-│   └── manage_users.php
-├── student/
-│   ├── login.php
-│   ├── register.php
-│   ├── courses.php
-│   └── downloads.php
-├── assets/
-│   ├── css/
-│   └── js/
-├── uploads/
-│   └── [PDF and course materials]
-├── index.php
-├── about.php
-├── contact.php
-└── README.md
 ```
-
----
-
-## 🔐 Login Details (Demo)
-
-### Admin
-
-* **Username**: `admin`
-* **Password**: `admin123`
-
-### Student
-
-* **Username**: `student@example.com`
-* **Password**: `student123`
-
-> **Note:** These are demo credentials. Please change them in production.
-
----
-
-## ⚙️ How to Set Up Locally
-
-1. **Clone the repository:**
-
-   ```bash
-   git clone https://github.com/comfortlimata/schoolproject.git
-   ```
-
-2. **Move the project folder to your server directory:**
-
-   * For XAMPP: `htdocs/`
-   * For Laragon: `www/`
-
-3. **Create the database:**
-
-   * Open `phpMyAdmin`
-   * Create a new database (e.g., `elearning_db`)
-   * Import the provided `elearning.sql` file (if available)
-
-4. **Update the database connection in `db.php`:**
-
-   ```php
-   $conn = new mysqli("localhost", "root", "", "elearning_db");
-   ```
-
-5. **Run the application:**
-   Open your browser and navigate to:
-
-   ```
-   http://localhost/schoolproject/
-   ```
-
----
-
-## 🚀 Future Enhancements
-
-* Add video streaming (YouTube or self-hosted)
-* Enable student comments or discussion threads
-* Add grading and quiz functionality
-* Notifications for new materials
-
----
-
-## 🧑‍💼 Developed By
-
-**Comfort Limata**
-*Information Systems and Technology Student – Zambia*
-GitHub: [https://github.com/comfortlimata](https://github.com/comfortlimata)
-
----
-
-## 📄 License
-
-This project is for **educational purposes** and is open-source under the [MIT License](LICENSE).

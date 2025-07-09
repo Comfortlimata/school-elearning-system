@@ -90,6 +90,10 @@ if (!isset($_SESSION['username']) || $_SESSION['usertype'] !== 'student') {
                         <small class="text-muted">Student</small>
                     </div>
                 </div>
+                <a href="studentnotifications.php" class="btn btn-light position-relative mx-2" style="border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;">
+                    <i class="fas fa-bell"></i>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">3</span>
+                </a>
                 <a href="logout.php" class="logout-btn">
                     <i class="fas fa-sign-out-alt me-2"></i>Logout
                 </a>
@@ -98,11 +102,9 @@ if (!isset($_SESSION['username']) || $_SESSION['usertype'] !== 'student') {
         <div class="dashboard-content">
             <div class="welcome-section text-center" style="background: linear-gradient(135deg, #2563eb, #1e40af); color: white; padding: 3rem 2rem; border-radius: 20px; margin-bottom: 2rem; box-shadow: 0 4px 24px rgba(37,99,235,0.10);">
                 <h1 class="welcome-title mb-3" style="font-size:2.5rem; font-weight:700;">Welcome, <?php echo htmlspecialchars($_SESSION['username']); ?>!</h1>
-                <p class="welcome-subtitle mb-4" style="font-size:1.2rem; opacity:0.95;">This is your e-learning dashboard. Access your registered subjects below.</p>
-                <a href="student_subjects.php" class="btn btn-lg btn-light" style="color:#2563eb; font-weight:600; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
-                    <i class="fas fa-book-open me-2"></i>View Subjects
-                </a>
+                <p class="welcome-subtitle mb-4" style="font-size:1.2rem; opacity:0.95;">This is your e-learning dashboard. Use the sidebar to access your subjects, teachers, assignments, and materials.</p>
             </div>
+            <!-- Dashboard is now empty except for the welcome section -->
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js"></script>
