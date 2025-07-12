@@ -28,7 +28,7 @@ if (mysqli_query($data, $sql)) {
     // Insert default content
     $default_content = [
         ['hero', 'Excellence in Education', 'Empowering students with knowledge, skills, and values for a brighter future. Join our community of learners and discover your potential.'],
-        ['about', 'About Miles e-School Academy', 'At Miles e-School Academy, we believe that learning is a journey — and sometimes, it takes a few extra miles! Our students don\'t just stop at the basics; they zoom past the ordinary with curiosity, creativity, and a healthy dose of determination.'],
+        ['about', 'About Comfort e-School Academy', 'At Comfort e-School Academy, we believe that learning is a journey — and sometimes, it takes a few extra miles! Our students don\'t just stop at the basics; they zoom past the ordinary with curiosity, creativity, and a healthy dose of determination.'],
         ['stats', 'Statistics', '{"students":"500+","teachers":"25+","experience":"15+","success_rate":"95%"}']
     ];
     

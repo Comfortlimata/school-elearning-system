@@ -28,11 +28,11 @@ if (mysqli_num_rows($content_result) > 0) {
     $content = [
         'hero_title' => 'Excellence in Education',
         'hero_subtitle' => 'Empowering students with knowledge, skills, and values for a brighter future. Join our community of learners and discover your potential.',
-        'about_title' => 'Welcome to Miles e-School Academy',
-        'about_content' => 'At Miles e-School Academy, we believe that learning is a journey — and sometimes, it takes a few extra miles! Our students don\'t just stop at the basics; they zoom past the ordinary with curiosity, creativity, and a healthy dose of determination.',
+        'about_title' => 'Welcome to Comfort e-School Academy',
+        'about_content' => 'At Comfort e-School Academy, we believe that learning is a journey — and sometimes, it takes a few extra miles! Our students don\'t just stop at the basics; they zoom past the ordinary with curiosity, creativity, and a healthy dose of determination.',
         'contact_address' => '123 Education Street, Academic District, City, Country',
         'contact_phone' => '+1 (555) 123-4567',
-        'contact_email' => 'info@milesacademy.edu',
+        'contact_email' => 'info@comfortacademy.edu',
         'contact_hours' => 'Monday - Friday: 8:00 AM - 6:00 PM\nSaturday: 9:00 AM - 2:00 PM'
     ];
 }
@@ -46,7 +46,7 @@ $result = mysqli_query($data, $sql);
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>Miles e-School Academy - Excellence in Education</title>
+	    <title>Comfort e-School Academy - Excellence in Education</title>
 
 	<!-- Bootstrap CSS -->
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -391,7 +391,7 @@ $result = mysqli_query($data, $sql);
 		<div class="container">
 			<a class="navbar-brand" href="#">
 				<i class="fas fa-graduation-cap me-2"></i>
-				Miles e-School Academy
+				                Comfort e-School Academy
 			</a>
 			<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
 				<span class="navbar-toggler-icon"></span>
@@ -414,7 +414,7 @@ $result = mysqli_query($data, $sql);
 						<a class="nav-link" href="#contact">Contact</a>
 					</li>
 					<li class="nav-item">
-						<a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#loginModal">
+											<a class="nav-link" href="login.php">
 							<i class="fas fa-sign-in-alt me-1"></i>Login
 						</a>
 					</li>
@@ -423,133 +423,7 @@ $result = mysqli_query($data, $sql);
 		</div>
 	</nav>
 
-	<!-- Login Modal -->
-	<div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
-		<div class="modal-dialog modal-dialog-centered">
-			<div class="modal-content">
-				<div class="modal-header">
-					<h5 class="modal-title" id="loginModalLabel">
-						<i class="fas fa-graduation-cap me-2"></i>Welcome to Miles Academy
-					</h5>
-					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-				</div>
-				<div class="modal-body">
-					<!-- Login Type Tabs -->
-					<ul class="nav nav-pills nav-fill mb-4" id="loginTabs" role="tablist">
-						<li class="nav-item" role="presentation">
-							<button class="nav-link active" id="student-tab" data-bs-toggle="pill" data-bs-target="#student-login" type="button" role="tab">
-								<i class="fas fa-user-graduate me-2"></i>Student
-							</button>
-						</li>
-						<li class="nav-item" role="presentation">
-							<button class="nav-link" id="teacher-tab" data-bs-toggle="pill" data-bs-target="#teacher-login" type="button" role="tab">
-								<i class="fas fa-chalkboard-teacher me-2"></i>Teacher
-							</button>
-						</li>
-						<li class="nav-item" role="presentation">
-							<button class="nav-link" id="admin-tab" data-bs-toggle="pill" data-bs-target="#admin-login" type="button" role="tab">
-								<i class="fas fa-user-shield me-2"></i>Admin
-							</button>
-						</li>
-					</ul>
 
-					<!-- Tab Content -->
-					<div class="tab-content" id="loginTabContent">
-						<!-- Student Login -->
-						<div class="tab-pane fade show active" id="student-login" role="tabpanel">
-							<form action="login.php" method="POST">
-								<input type="hidden" name="usertype" value="student">
-								<div class="mb-3">
-									<label for="student-username" class="form-label">Username</label>
-									<div class="input-group">
-										<span class="input-group-text"><i class="fas fa-user"></i></span>
-										<input type="text" class="form-control" id="student-username" name="username" required>
-									</div>
-								</div>
-								<div class="mb-3">
-									<label for="student-password" class="form-label">Password</label>
-									<div class="input-group">
-										<span class="input-group-text"><i class="fas fa-lock"></i></span>
-										<input type="password" class="form-control" id="student-password" name="password" required>
-									</div>
-								</div>
-								<div class="mb-3 form-check">
-									<input type="checkbox" class="form-check-input" id="student-remember">
-									<label class="form-check-label" for="student-remember">Remember me</label>
-								</div>
-								<button type="submit" class="btn btn-primary w-100">
-									<i class="fas fa-sign-in-alt me-2"></i>Student Login
-								</button>
-							</form>
-						</div>
-
-						<!-- Teacher Login -->
-						<div class="tab-pane fade" id="teacher-login" role="tabpanel">
-							<form action="login.php" method="POST">
-								<input type="hidden" name="usertype" value="teacher">
-								<div class="mb-3">
-									<label for="teacher-username" class="form-label">Username</label>
-									<div class="input-group">
-										<span class="input-group-text"><i class="fas fa-user"></i></span>
-										<input type="text" class="form-control" id="teacher-username" name="username" required>
-									</div>
-								</div>
-								<div class="mb-3">
-									<label for="teacher-password" class="form-label">Password</label>
-									<div class="input-group">
-										<span class="input-group-text"><i class="fas fa-lock"></i></span>
-										<input type="password" class="form-control" id="teacher-password" name="password" required>
-									</div>
-								</div>
-								<div class="mb-3 form-check">
-									<input type="checkbox" class="form-check-input" id="teacher-remember">
-									<label class="form-check-label" for="teacher-remember">Remember me</label>
-								</div>
-								<button type="submit" class="btn btn-success w-100">
-									<i class="fas fa-chalkboard-teacher me-2"></i>Teacher Login
-								</button>
-							</form>
-						</div>
-
-						<!-- Admin Login -->
-						<div class="tab-pane fade" id="admin-login" role="tabpanel">
-							<form action="login.php" method="POST">
-								<input type="hidden" name="usertype" value="admin">
-								<div class="mb-3">
-									<label for="admin-username" class="form-label">Username</label>
-									<div class="input-group">
-										<span class="input-group-text"><i class="fas fa-user"></i></span>
-										<input type="text" class="form-control" id="admin-username" name="username" required>
-									</div>
-								</div>
-								<div class="mb-3">
-									<label for="admin-password" class="form-label">Password</label>
-									<div class="input-group">
-										<span class="input-group-text"><i class="fas fa-lock"></i></span>
-										<input type="password" class="form-control" id="admin-password" name="password" required>
-									</div>
-								</div>
-								<div class="mb-3 form-check">
-									<input type="checkbox" class="form-check-input" id="admin-remember">
-									<label class="form-check-label" for="admin-remember">Remember me</label>
-								</div>
-								<button type="submit" class="btn btn-danger w-100">
-									<i class="fas fa-user-shield me-2"></i>Admin Login
-								</button>
-							</form>
-						</div>
-					</div>
-
-					<!-- Forgot Password Link -->
-					<div class="text-center mt-3">
-						<a href="forgot_password.php" class="text-decoration-none">
-							<i class="fas fa-key me-1"></i>Forgot Password?
-						</a>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
 
 	<!-- Hero Section -->
 	<section id="home" class="hero-section">
@@ -612,7 +486,7 @@ $result = mysqli_query($data, $sql);
 	<!-- About Section -->
 	<section id="about" class="py-5">
 		<div class="container">
-			<h2 class="section-title">About Miles e-School Academy</h2>
+			                <h2 class="section-title">About Comfort e-School Academy</h2>
 			<p class="section-subtitle">Building futures through quality education and innovative learning</p>
 			<div class="row align-items-center">
 				<div class="col-lg-6 mb-4">
@@ -806,7 +680,7 @@ $result = mysqli_query($data, $sql);
 						<img src="picture1.jpg" alt="Student" class="testimonial-avatar">
 						<h5>Alex Thompson</h5>
 						<p class="text-muted">Graduated 2023</p>
-						<p>"The teachers at Miles Academy are exceptional. They helped me achieve my dream of studying engineering at university."</p>
+						                    <p>"The teachers at Comfort Academy are exceptional. They helped me achieve my dream of studying engineering at university."</p>
 						<div class="text-warning">
 							<i class="fas fa-star"></i>
 							<i class="fas fa-star"></i>
@@ -986,7 +860,7 @@ $result = mysqli_query($data, $sql);
 		<div class="container">
 			<div class="row">
 				<div class="col-lg-4 mb-4">
-					<h5><i class="fas fa-graduation-cap me-2"></i>Miles e-School Academy</h5>
+					                <h5><i class="fas fa-graduation-cap me-2"></i>Comfort e-School Academy</h5>
 					<p class="text-muted">Empowering students with knowledge, skills, and values for a brighter future. Join our community of learners and discover your potential.</p>
 					<div class="social-links">
 						<a href="#"><i class="fab fa-facebook-f"></i></a>
@@ -1035,7 +909,7 @@ $result = mysqli_query($data, $sql);
 			<hr class="my-4">
 			<div class="row align-items-center">
 				<div class="col-md-6">
-					<p class="mb-0 text-muted">&copy; 2024 Miles e-School Academy. All rights reserved.</p>
+					            <p class="mb-0 text-muted">&copy; 2024 Comfort e-School Academy. All rights reserved.</p>
 				</div>
 				<div class="col-md-6 text-md-end">
 					<a href="#" class="text-muted me-3">Privacy Policy</a>

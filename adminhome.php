@@ -27,7 +27,7 @@ $admission_count = mysqli_fetch_array(mysqli_query($data, "SELECT COUNT(*) FROM 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Admin Dashboard - Miles e-School Academy</title>
+    <title>Admin Dashboard - Comfort e-School Academy</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="admin.css">

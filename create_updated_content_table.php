@@ -20,7 +20,7 @@ $sql = "CREATE TABLE website_content (
     id INT AUTO_INCREMENT PRIMARY KEY,
     hero_title VARCHAR(255) NOT NULL DEFAULT 'Excellence in Education',
     hero_subtitle TEXT NOT NULL,
-    about_title VARCHAR(255) NOT NULL DEFAULT 'About Miles e-School Academy',
+    about_title VARCHAR(255) NOT NULL DEFAULT 'About Comfort e-School Academy',
     about_content TEXT NOT NULL,
     contact_address TEXT NOT NULL,
     contact_phone VARCHAR(50) NOT NULL,
@@ -46,11 +46,11 @@ if (mysqli_query($data, $sql)) {
     ) VALUES (
         'Excellence in Education',
         'Empowering students with knowledge, skills, and values for a brighter future. Join our community of learners and discover your potential.',
-        'About Miles e-School Academy',
-        'At Miles e-School Academy, we believe that learning is a journey — and sometimes, it takes a few extra miles! Our students don\'t just stop at the basics; they zoom past the ordinary with curiosity, creativity, and a healthy dose of determination.',
+        'About Comfort e-School Academy',
+        'At Comfort e-School Academy, we believe that learning is a journey — and sometimes, it takes a few extra miles! Our students don\'t just stop at the basics; they zoom past the ordinary with curiosity, creativity, and a healthy dose of determination.',
         '123 Education Street, Academic District, City, Country',
         '+1 (555) 123-4567',
-        'info@milesacademy.edu',
+        'info@comfortacademy.edu',
         'Monday - Friday: 8:00 AM - 6:00 PM\nSaturday: 9:00 AM - 2:00 PM'
     )";
     

@@ -34,11 +34,11 @@ if (mysqli_query($data, $create_sql)) {
 
 // Add sample teachers
 $teachers = [
-    ['username' => 'sarah.johnson', 'password' => 'teacher123', 'email' => 'sarah.johnson@milesacademy.edu', 'name' => 'Dr. Sarah Johnson', 'specialization' => 'Mathematics'],
-    ['username' => 'michael.chen', 'password' => 'teacher123', 'email' => 'michael.chen@milesacademy.edu', 'name' => 'Prof. Michael Chen', 'specialization' => 'Physics'],
-    ['username' => 'emily.rodriguez', 'password' => 'teacher123', 'email' => 'emily.rodriguez@milesacademy.edu', 'name' => 'Ms. Emily Rodriguez', 'specialization' => 'Statistics'],
-    ['username' => 'james.wilson', 'password' => 'teacher123', 'email' => 'james.wilson@milesacademy.edu', 'name' => 'Dr. James Wilson', 'specialization' => 'Computer Science'],
-    ['username' => 'lisa.thompson', 'password' => 'teacher123', 'email' => 'lisa.thompson@milesacademy.edu', 'name' => 'Prof. Lisa Thompson', 'specialization' => 'Business Administration']
+            ['username' => 'sarah.johnson', 'password' => 'teacher123', 'email' => 'sarah.johnson@comfortacademy.edu', 'name' => 'Dr. Sarah Johnson', 'specialization' => 'Mathematics'],
+            ['username' => 'michael.chen', 'password' => 'teacher123', 'email' => 'michael.chen@comfortacademy.edu', 'name' => 'Prof. Michael Chen', 'specialization' => 'Physics'],
+            ['username' => 'emily.rodriguez', 'password' => 'teacher123', 'email' => 'emily.rodriguez@comfortacademy.edu', 'name' => 'Ms. Emily Rodriguez', 'specialization' => 'Statistics'],
+            ['username' => 'james.wilson', 'password' => 'teacher123', 'email' => 'james.wilson@comfortacademy.edu', 'name' => 'Dr. James Wilson', 'specialization' => 'Computer Science'],
+            ['username' => 'lisa.thompson', 'password' => 'teacher123', 'email' => 'lisa.thompson@comfortacademy.edu', 'name' => 'Prof. Lisa Thompson', 'specialization' => 'Business Administration']
 ];
 
 foreach ($teachers as $teacher) {

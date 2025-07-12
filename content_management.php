@@ -72,11 +72,11 @@ if (mysqli_num_rows($content_result) > 0) {
     $content = [
         'hero_title' => 'Excellence in Education',
         'hero_subtitle' => 'Empowering students with knowledge, skills, and values for a brighter future.',
-        'about_title' => 'Welcome to Miles e-School Academy',
-        'about_content' => 'At Miles e-School Academy, we believe that learning is a journey — and sometimes, it takes a few extra miles! Our students don\'t just stop at the basics; they zoom past the ordinary with curiosity, creativity, and a healthy dose of determination.',
+        'about_title' => 'Welcome to Comfort e-School Academy',
+        'about_content' => 'At Comfort e-School Academy, we believe that learning is a journey — and sometimes, it takes a few extra miles! Our students don\'t just stop at the basics; they zoom past the ordinary with curiosity, creativity, and a healthy dose of determination.',
         'contact_address' => '123 Education Street, Academic District, City, Country',
         'contact_phone' => '+1 (555) 123-4567',
-        'contact_email' => 'info@milesacademy.edu',
+        'contact_email' => 'info@comfortacademy.edu',
         'contact_hours' => 'Monday - Friday: 8:00 AM - 6:00 PM\nSaturday: 9:00 AM - 2:00 PM'
     ];
 }

@@ -8,6 +8,12 @@
                 </a>
             </li>
             <li style="margin-bottom:1.5rem;">
+                <a href="studentgrade.php" class="btn btn-outline-light w-100 my-2" style="text-align:left;border:2px solid #fff;padding:1rem 1.5rem;border-radius:12px;font-weight:600;font-size:1.1rem;display:flex;align-items:center;gap:0.75rem;">
+                    <i class="fas fa-graduation-cap"></i>
+                    My Grade
+                </a>
+            </li>
+            <li style="margin-bottom:1.5rem;">
                 <a href="studentsubjects.php" class="btn btn-outline-light w-100 my-2" style="text-align:left;border:2px solid #fff;padding:1rem 1.5rem;border-radius:12px;font-weight:600;font-size:1.1rem;display:flex;align-items:center;gap:0.75rem;">
                     <i class="fas fa-book-open"></i>
                     Subjects & Teachers

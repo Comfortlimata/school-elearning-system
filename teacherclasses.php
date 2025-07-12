@@ -34,6 +34,7 @@ $classes = mysqli_query($conn, "SELECT tgs.grade_id, g.name as grade_name, gsa.s
         <div class="sidebar-menu">
             <a href="teacherhome.php" class="sidebar-link"><i class="fas fa-tachometer-alt"></i>Dashboard</a>
             <a href="teacherclasses.php" class="sidebar-link active"><i class="fas fa-users-class"></i>My Classes</a>
+            <a href="teachersubjects.php" class="sidebar-link"><i class="fas fa-book"></i>My Subjects</a>
             <a href="teacherassignments.php" class="sidebar-link"><i class="fas fa-tasks"></i>Assignments & Materials</a>
             <a href="teacherperformance.php" class="sidebar-link"><i class="fas fa-chart-bar"></i>Student Performance</a>
             <a href="teacherschedule.php" class="sidebar-link"><i class="fas fa-calendar-alt"></i>Schedule</a>

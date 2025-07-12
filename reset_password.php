@@ -63,7 +63,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reset'])) {
             $reset_link = "http://" . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']) . "/new_password.php?token=" . $token . "&type=" . $usertype;
             
             $to = $email;
-            $subject = "Password Reset Request - Miles e-School Academy";
+            $subject = "Password Reset Request - Comfort e-School Academy";
             $message = "
             <html>
             <head>
@@ -72,19 +72,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['reset'])) {
             <body>
                 <h2>Password Reset Request</h2>
                 <p>Hello " . htmlspecialchars($user['name'] ?? $user['username']) . ",</p>
-                <p>You have requested to reset your password for your Miles e-School Academy account.</p>
+                <p>You have requested to reset your password for your Comfort e-School Academy account.</p>
                 <p>Click the link below to reset your password:</p>
                 <p><a href='$reset_link' style='background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;'>Reset Password</a></p>
                 <p>This link will expire in 1 hour.</p>
                 <p>If you didn't request this password reset, please ignore this email.</p>
-                <p>Best regards,<br>Miles e-School Academy Team</p>
+                <p>Best regards,<br>Comfort e-School Academy Team</p>
             </body>
             </html>
             ";
             
             $headers = "MIME-Version: 1.0" . "\r\n";
             $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
-            $headers .= "From: Miles e-School Academy <noreply@milesacademy.edu>" . "\r\n";
+            $headers .= "From: Comfort e-School Academy <noreply@comfortacademy.edu>" . "\r\n";
             
             if (mail($to, $subject, $message, $headers)) {
                 $_SESSION['forgotSuccess'] = "Password reset link has been sent to your email address. Please check your inbox and spam folder.";

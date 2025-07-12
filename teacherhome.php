@@ -19,7 +19,7 @@ $total_students = mysqli_fetch_array(mysqli_query($conn, "SELECT COUNT(DISTINCT 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Teacher Dashboard - Miles e-School Academy</title>
+    <title>Teacher Dashboard - Comfort e-School Academy</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -75,6 +75,7 @@ $total_students = mysqli_fetch_array(mysqli_query($conn, "SELECT COUNT(DISTINCT 
         <div class="sidebar-menu">
             <a href="teacherhome.php" class="sidebar-link active"><i class="fas fa-tachometer-alt"></i>Dashboard</a>
             <a href="teacherclasses.php" class="sidebar-link"><i class="fas fa-users-class"></i>My Classes</a>
+            <a href="teachersubjects.php" class="sidebar-link"><i class="fas fa-book"></i>My Subjects</a>
             <a href="teacherassignments.php" class="sidebar-link"><i class="fas fa-tasks"></i>Assignments & Materials</a>
             <a href="teacherperformance.php" class="sidebar-link"><i class="fas fa-chart-bar"></i>Student Performance</a>
             <a href="teacherschedule.php" class="sidebar-link"><i class="fas fa-calendar-alt"></i>Schedule</a>
