@@ -15,36 +15,93 @@ $classes = mysqli_query($conn, "SELECT tgs.grade_id, g.name as grade_name, gsa.s
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Student Performance - Teacher Portal</title>
+    <title>Student Performance - Comfort e-School Academy</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
     <style>
-        :root { --primary-color: #2563eb; --secondary-color: #1e40af; --light-color: #f8fafc; --border-color: #e5e7eb; }
-        * { font-family: 'Poppins', sans-serif; }
-        body { background: var(--light-color); }
-        .main-content { margin-left: 280px; padding: 2rem; }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #f8f9fa;
+        }
+        .top-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            z-index: 1000;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            height: 60px;
+        }
+        .top-nav-link {
+            color: #444;
+            text-decoration: none;
+            font-size: 1.1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0 10px;
+            transition: color 0.2s;
+        }
+        .top-nav-link i {
+            font-size: 1.3rem;
+        }
+        .top-nav-link.active, .top-nav-link:hover {
+            color: #007bff;
+        }
+        .main-content {
+            margin-top: 80px;
+            padding: 2rem 1rem 1rem 1rem;
+            max-width: 1100px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .performance-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .performance-icon {
+            background: #e3f0ff;
+            color: #007bff;
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+        @media (max-width: 600px) {
+            .main-content {
+                padding: 1rem 0.2rem 0.5rem 0.2rem;
+            }
+        }
     </style>
 </head>
 <body>
-    <aside class="sidebar">
-        <div class="sidebar-header">
-            <a href="#" class="sidebar-brand">Teacher Portal</a>
-        </div>
-        <div class="sidebar-menu">
-            <a href="teacherhome.php" class="sidebar-link"><i class="fas fa-tachometer-alt"></i>Dashboard</a>
-            <a href="teacherclasses.php" class="sidebar-link"><i class="fas fa-users-class"></i>My Classes</a>
-            <a href="teachersubjects.php" class="sidebar-link"><i class="fas fa-book"></i>My Subjects</a>
-            <a href="teacherassignments.php" class="sidebar-link"><i class="fas fa-tasks"></i>Assignments & Materials</a>
-            <a href="teacherperformance.php" class="sidebar-link active"><i class="fas fa-chart-bar"></i>Student Performance</a>
-            <a href="teacherschedule.php" class="sidebar-link"><i class="fas fa-calendar-alt"></i>Schedule</a>
-            <a href="teacherprofile.php" class="sidebar-link"><i class="fas fa-user"></i>Profile</a>
-            <a href="teachernotifications.php" class="sidebar-link"><i class="fas fa-bell"></i>Notifications</a>
-        </div>
-    </aside>
+    <nav class="top-nav">
+        <a href="teacherhome.php" class="top-nav-link<?php if(basename($_SERVER['PHP_SELF'])=='teacherhome.php') echo ' active';?>"><i class="fas fa-home"></i><span>Home</span></a>
+        <a href="teacherclasses.php" class="top-nav-link<?php if(basename($_SERVER['PHP_SELF'])=='teacherclasses.php') echo ' active';?>"><i class="fas fa-users-class"></i><span>Classes</span></a>
+        <a href="teachersubjects.php" class="top-nav-link<?php if(basename($_SERVER['PHP_SELF'])=='teachersubjects.php') echo ' active';?>"><i class="fas fa-book"></i><span>Subjects</span></a>
+        <a href="teacherassignments.php" class="top-nav-link<?php if(basename($_SERVER['PHP_SELF'])=='teacherassignments.php') echo ' active';?>"><i class="fas fa-tasks"></i><span>Assignments</span></a>
+        <a href="teacherperformance.php" class="top-nav-link<?php if(basename($_SERVER['PHP_SELF'])=='teacherperformance.php') echo ' active';?>"><i class="fas fa-chart-line"></i><span>Performance</span></a>
+        <a href="teacherschedule.php" class="top-nav-link<?php if(basename($_SERVER['PHP_SELF'])=='teacherschedule.php') echo ' active';?>"><i class="fas fa-calendar-alt"></i><span>Schedule</span></a>
+        <a href="teachernotifications.php" class="top-nav-link<?php if(basename($_SERVER['PHP_SELF'])=='teachernotifications.php') echo ' active';?>"><i class="fas fa-bell"></i><span>Notifications</span></a>
+        <a href="teacherprofile.php" class="top-nav-link<?php if(basename($_SERVER['PHP_SELF'])=='teacherprofile.php') echo ' active';?>"><i class="fas fa-user"></i><span>Profile</span></a>
+    </nav>
     <div class="main-content">
-        <h2 class="mb-4"><i class="fas fa-chart-bar me-2"></i>Student Performance</h2>
-        <?php
+        <div class="performance-header">
+            <div class="performance-icon"><i class="fas fa-chart-bar"></i></div>
+            <h2 class="mb-0">Student Performance</h2>
+        </div>
+<?php
         // Add success/error message display
         if (isset($_SESSION['success_message'])) {
             echo '<div class="alert alert-success">' . $_SESSION['success_message'] . '</div>';
@@ -54,8 +111,8 @@ $classes = mysqli_query($conn, "SELECT tgs.grade_id, g.name as grade_name, gsa.s
             echo '<div class="alert alert-danger">' . $_SESSION['error_message'] . '</div>';
             unset($_SESSION['error_message']);
         }
-        ?>
-        <?php
+?>
+<?php
 // Gather all classes for the teacher for the class filter
 $class_options = [];
 if ($classes && mysqli_num_rows($classes) > 0) {
@@ -135,7 +192,7 @@ if ($selected_class) {
             <div class="col-12 mb-4">
                 <div class="card shadow-sm">
                     <div class="card-header bg-primary text-white">
-                        <strong><?php echo "$grade$section - $subject"; ?></strong>
+                        <strong><i class="fas fa-users-class me-2"></i><?php echo "$grade$section - $subject"; ?></strong>
                     </div>
                     <div class="card-body">
                         <?php
@@ -270,5 +327,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['grade_submission'])) 
     header('Location: teacherperformance.php'); exit();
 }
 ?>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html> 

@@ -428,7 +428,7 @@ if (!isset($_SESSION['username']) || $_SESSION['usertype'] !== 'student') {
                                     
                                     <!-- Materials Section -->
                                     <?php
-                                    $materials = mysqli_query($conn, "SELECT * FROM course_materials WHERE course_id = $course_id ORDER BY created_at DESC");
+                                    $materials = mysqli_query($conn, "SELECT * FROM materials WHERE course_id = $course_id ORDER BY created_at DESC");
                                     if ($materials && mysqli_num_rows($materials) > 0):
                                     ?>
                                         <h3 class="section-title mt-4">
