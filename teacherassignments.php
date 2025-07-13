@@ -8,8 +8,9 @@ $conn = mysqli_connect("localhost", "root", "", "schoolproject");
 if (!$conn) { die("Database connection failed: " . mysqli_connect_error()); }
 $teacher_id = $_SESSION['teacher_id'];
 
-// Handle unassigned assignment form
+// Handle assignment form
 if (isset($_POST['add_assignment_unassigned'])) {
+    $course_id = intval($_POST['course_id']);
     $title = mysqli_real_escape_string($conn, $_POST['title']);
     $description = mysqli_real_escape_string($conn, $_POST['description']);
     $due_date = mysqli_real_escape_string($conn, $_POST['due_date']);
@@ -24,17 +25,29 @@ if (isset($_POST['add_assignment_unassigned'])) {
             $file_path = $target;
         }
     }
-    $sql = "INSERT INTO teacher_assignments (course_id, title, description, due_date, total_points, file_path, created_by) VALUES (NULL, '$title', '$description', '$due_date', $total_points, '$file_path', $teacher_id)";
+    $sql = "INSERT INTO teacher_assignments (course_id, title, description, due_date, total_points, file_path, created_by) VALUES ($course_id, '$title', '$description', '$due_date', $total_points, '$file_path', $teacher_id)";
     if (mysqli_query($conn, $sql)) {
-        $_SESSION['success_message'] = 'Unassigned assignment added successfully!';
+        $_SESSION['success_message'] = 'Assignment added successfully!';
+        // Notify only students registered for this course
+        $students = mysqli_query($conn, "SELECT DISTINCT student_id FROM course_enrollments WHERE course_id = $course_id");
+        $notif_title = "New Assignment Uploaded";
+        $notif_message = "A new assignment titled '" . $title . "' has been uploaded for your subject.";
+        $stmt = mysqli_prepare($conn, "INSERT INTO notifications (user_id, user_type, title, message) VALUES (?, 'student', ?, ?)");
+        while ($row = mysqli_fetch_assoc($students)) {
+            $student_id = $row['student_id'];
+            mysqli_stmt_bind_param($stmt, "iss", $student_id, $notif_title, $notif_message);
+            mysqli_stmt_execute($stmt);
+        }
+        mysqli_stmt_close($stmt);
     } else {
-        $_SESSION['error_message'] = 'Failed to add unassigned assignment.';
+        $_SESSION['error_message'] = 'Failed to add assignment.';
     }
     header('Location: teacherassignments.php');
     exit();
 }
-// Handle unassigned material form
+// Handle material form
 if (isset($_POST['add_material_unassigned'])) {
+    $course_id = intval($_POST['course_id']);
     $title = mysqli_real_escape_string($conn, $_POST['title']);
     $description = mysqli_real_escape_string($conn, $_POST['description']);
     $file_path = '';
@@ -47,11 +60,22 @@ if (isset($_POST['add_material_unassigned'])) {
             $file_path = $target;
         }
     }
-    $sql = "INSERT INTO materials (course_id, title, description, file_path, uploaded_by) VALUES (NULL, '$title', '$description', '$file_path', $teacher_id)";
+    $sql = "INSERT INTO materials (course_id, title, description, file_path, uploaded_by) VALUES ($course_id, '$title', '$description', '$file_path', $teacher_id)";
     if (mysqli_query($conn, $sql)) {
-        $_SESSION['success_message'] = 'Unassigned material added successfully!';
+        $_SESSION['success_message'] = 'Material added successfully!';
+        // Notify only students registered for this course
+        $students = mysqli_query($conn, "SELECT DISTINCT student_id FROM course_enrollments WHERE course_id = $course_id");
+        $notif_title = "New Material Uploaded";
+        $notif_message = "A new material titled '" . $title . "' has been uploaded for your subject.";
+        $stmt = mysqli_prepare($conn, "INSERT INTO notifications (user_id, user_type, title, message) VALUES (?, 'student', ?, ?)");
+        while ($row = mysqli_fetch_assoc($students)) {
+            $student_id = $row['student_id'];
+            mysqli_stmt_bind_param($stmt, "iss", $student_id, $notif_title, $notif_message);
+            mysqli_stmt_execute($stmt);
+        }
+        mysqli_stmt_close($stmt);
     } else {
-        $_SESSION['error_message'] = 'Failed to add unassigned material.';
+        $_SESSION['error_message'] = 'Failed to add material.';
     }
     header('Location: teacherassignments.php');
     exit();
@@ -265,17 +289,39 @@ $classes = mysqli_query($conn, "SELECT tgs.grade_id, g.name as grade_name, gsa.s
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Add Assignment Unassigned Modal -->
+    <!-- Add Assignment Modal -->
     <div class="modal fade" id="addAssignmentUnassignedModal" tabindex="-1" aria-labelledby="addAssignmentUnassignedModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header bg-primary text-white">
-            <h5 class="modal-title" id="addAssignmentUnassignedModalLabel"><i class="fas fa-plus me-2"></i>Add Assignment (Woodwork Only)</h5>
+            <h5 class="modal-title" id="addAssignmentUnassignedModalLabel"><i class="fas fa-plus me-2"></i>Add Assignment</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <form method="post" enctype="multipart/form-data">
             <input type="hidden" name="add_assignment_unassigned" value="1">
             <div class="modal-body">
+              <div class="mb-3">
+                <label class="form-label">Subject/Class</label>
+                <select name="course_id" class="form-control" required>
+                  <option value="">Select Subject/Class</option>
+                  <?php
+                  mysqli_data_seek($classes, 0);
+                  $courses_seen = [];
+                  while ($class = mysqli_fetch_assoc($classes)) {
+                      $subject = htmlspecialchars($class['subject_name']);
+                      $grade = htmlspecialchars($class['grade_name']);
+                      $section = htmlspecialchars($class['section']);
+                      $course = mysqli_fetch_assoc(mysqli_query($conn, "SELECT id FROM courses WHERE course_name LIKE '%$subject%' LIMIT 1"));
+                      $course_id = $course['id'] ?? 0;
+                      if ($course_id && !in_array($course_id, $courses_seen)) {
+                          $courses_seen[] = $course_id;
+                          echo "<option value='$course_id'>$grade$section - $subject</option>";
+                      }
+                  }
+                  mysqli_data_seek($classes, 0);
+                  ?>
+                </select>
+              </div>
               <div class="mb-3">
                 <label class="form-label">Title</label>
                 <input type="text" name="title" class="form-control" required>
@@ -305,17 +351,39 @@ $classes = mysqli_query($conn, "SELECT tgs.grade_id, g.name as grade_name, gsa.s
         </div>
       </div>
     </div>
-    <!-- Add Material Unassigned Modal -->
+    <!-- Add Material Modal -->
     <div class="modal fade" id="addMaterialUnassignedModal" tabindex="-1" aria-labelledby="addMaterialUnassignedModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header bg-success text-white">
-            <h5 class="modal-title" id="addMaterialUnassignedModalLabel"><i class="fas fa-upload me-2"></i>Add Material (Woodwork Only)</h5>
+            <h5 class="modal-title" id="addMaterialUnassignedModalLabel"><i class="fas fa-upload me-2"></i>Add Material</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <form method="post" enctype="multipart/form-data">
             <input type="hidden" name="add_material_unassigned" value="1">
             <div class="modal-body">
+              <div class="mb-3">
+                <label class="form-label">Subject/Class</label>
+                <select name="course_id" class="form-control" required>
+                  <option value="">Select Subject/Class</option>
+                  <?php
+                  mysqli_data_seek($classes, 0);
+                  $courses_seen = [];
+                  while ($class = mysqli_fetch_assoc($classes)) {
+                      $subject = htmlspecialchars($class['subject_name']);
+                      $grade = htmlspecialchars($class['grade_name']);
+                      $section = htmlspecialchars($class['section']);
+                      $course = mysqli_fetch_assoc(mysqli_query($conn, "SELECT id FROM courses WHERE course_name LIKE '%$subject%' LIMIT 1"));
+                      $course_id = $course['id'] ?? 0;
+                      if ($course_id && !in_array($course_id, $courses_seen)) {
+                          $courses_seen[] = $course_id;
+                          echo "<option value='$course_id'>$grade$section - $subject</option>";
+                      }
+                  }
+                  mysqli_data_seek($classes, 0);
+                  ?>
+                </select>
+              </div>
               <div class="mb-3">
                 <label class="form-label">Title</label>
                 <input type="text" name="title" class="form-control" required>

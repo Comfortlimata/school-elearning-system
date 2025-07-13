@@ -383,7 +383,14 @@ if (!isset($_SESSION['username']) || $_SESSION['usertype'] !== 'student') {
                                 <?php if ($course_id): ?>
                                     <!-- Assignments Section -->
                                     <?php
-                                    $assignments = mysqli_query($conn, "SELECT * FROM course_assignments WHERE course_id = $course_id ORDER BY due_date DESC");
+                                    // Get assignments from teacher_assignments table (including unassigned ones)
+                                    $assignments = mysqli_query($conn, "SELECT ta.*, t.name as teacher_name 
+                                                                        FROM teacher_assignments ta 
+                                                                        JOIN teacher t ON ta.created_by = t.id 
+                                                                        JOIN student_teacher_subject sts ON t.id = sts.teacher_id 
+                                                                        WHERE sts.student_id = (SELECT id FROM students WHERE username = '".mysqli_real_escape_string($conn, $student_username)."')
+                                                                        AND (ta.course_id IS NULL OR ta.course_id = $course_id)
+                                                                        ORDER BY ta.due_date DESC");
                                     if ($assignments && mysqli_num_rows($assignments) > 0):
                                     ?>
                                         <h3 class="section-title">
@@ -391,9 +398,7 @@ if (!isset($_SESSION['username']) || $_SESSION['usertype'] !== 'student') {
                                             Assignments
                                         </h3>
                                         <?php while ($a = mysqli_fetch_assoc($assignments)): 
-                                            $submission = mysqli_fetch_assoc(mysqli_query($conn, "SELECT * FROM assignment_submissions WHERE assignment_id = {$a['id']} AND student_id = (SELECT id FROM students WHERE username = '".mysqli_real_escape_string($conn, $student_username)."')"));
-                                            $status = $submission ? 'submitted' : (strtotime($a['due_date']) < time() ? 'overdue' : 'pending');
-                                            $grade = $submission['grade'] ?? null;
+                                            $status = strtotime($a['due_date']) < time() ? 'overdue' : 'pending';
                                         ?>
                                             <div class="assignment-item">
                                                 <div class="assignment-header">
@@ -407,13 +412,19 @@ if (!isset($_SESSION['username']) || $_SESSION['usertype'] !== 'student') {
                                                         <i class="fas fa-calendar me-1"></i>
                                                         Due: <?php echo date('M j, Y', strtotime($a['due_date'])); ?>
                                                     </span>
-                                                    <?php if ($grade): ?>
-                                                        <span class="grade-badge">
-                                                            <i class="fas fa-star me-1"></i>
-                                                            Grade: <?php echo htmlspecialchars($grade); ?>
-                                                        </span>
-                                                    <?php endif; ?>
+                                                    <small class="text-muted">
+                                                        <i class="fas fa-chalkboard-teacher me-1"></i>
+                                                        <?php echo htmlspecialchars($a['teacher_name']); ?>
+                                                    </small>
                                                 </div>
+                                                <?php if (!empty($a['file_path'])): ?>
+                                                    <div class="mt-2">
+                                                        <a href="<?php echo htmlspecialchars($a['file_path']); ?>" download class="btn btn-sm btn-outline-primary">
+                                                            <i class="fas fa-download me-1"></i>
+                                                            Download Assignment
+                                                        </a>
+                                                    </div>
+                                                <?php endif; ?>
                                             </div>
                                         <?php endwhile; ?>
                                     <?php else: ?>
@@ -428,7 +439,14 @@ if (!isset($_SESSION['username']) || $_SESSION['usertype'] !== 'student') {
                                     
                                     <!-- Materials Section -->
                                     <?php
-                                    $materials = mysqli_query($conn, "SELECT * FROM materials WHERE course_id = $course_id ORDER BY created_at DESC");
+                                    // Get materials from materials table (including unassigned ones)
+                                    $materials = mysqli_query($conn, "SELECT m.*, t.name as teacher_name 
+                                                                     FROM materials m 
+                                                                     JOIN teacher t ON m.uploaded_by = t.id 
+                                                                     JOIN student_teacher_subject sts ON t.id = sts.teacher_id 
+                                                                     WHERE sts.student_id = (SELECT id FROM students WHERE username = '".mysqli_real_escape_string($conn, $student_username)."')
+                                                                     AND (m.course_id IS NULL OR m.course_id = $course_id)
+                                                                     ORDER BY m.created_at DESC");
                                     if ($materials && mysqli_num_rows($materials) > 0):
                                     ?>
                                         <h3 class="section-title mt-4">
@@ -446,6 +464,9 @@ if (!isset($_SESSION['username']) || $_SESSION['usertype'] !== 'student') {
                                                         <small class="text-muted">
                                                             <i class="fas fa-clock me-1"></i>
                                                             Added: <?php echo date('M j, Y', strtotime($m['created_at'])); ?>
+                                                            <br>
+                                                            <i class="fas fa-chalkboard-teacher me-1"></i>
+                                                            <?php echo htmlspecialchars($m['teacher_name']); ?>
                                                         </small>
                                                     </div>
                                                 </div>
